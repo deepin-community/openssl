@@ -1,0 +1,5 @@
+openssl (3.0.2-deepin) stable; urgency=medium
+
+  * ['Rebuild  against by  current gcc 11.2']
+
+ -- Deepin Packages Builder <packages@deepin.org>  Fri, 12 Aug 2022 22:20:34 +0800
