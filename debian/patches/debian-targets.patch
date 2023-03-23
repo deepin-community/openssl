@@ -3,19 +3,19 @@ Date: Sun, 5 Nov 2017 15:09:09 +0100
 Subject: debian-targets
 
 ---
- Configurations/20-debian.conf | 218 ++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 218 insertions(+)
+ Configurations/20-debian.conf | 169 ++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 169 insertions(+)
  create mode 100644 Configurations/20-debian.conf
 
 diff --git a/Configurations/20-debian.conf b/Configurations/20-debian.conf
 new file mode 100644
-index 000000000000..4e141aa76407
+index 000000000000..c6860ed4b7d7
 --- /dev/null
 +++ b/Configurations/20-debian.conf
-@@ -0,0 +1,218 @@
+@@ -0,0 +1,169 @@
 +my %targets = (
 +	"debian" => {
-+		cflags => add("-Wa,--noexecstack -Wall -fzero-call-used-regs=used-gpr"),
++		cflags => add("-Wa,--noexecstack -Wall -fzero-call-used-regs=used-gpr -DOPENSSL_TLS_SECURITY_LEVEL=2"),
 +	},
 +	"debian-alpha" => {
 +		inherit_from => [ "linux-alpha-gcc", "debian" ],
@@ -29,7 +29,7 @@ index 000000000000..4e141aa76407
 +		cflags => add("-mcpu=ev5"),
 +	},
 +	"debian-arc" => {
-+		inherit_from => [ "linux-generic32", "debian" ],
++		inherit_from => [ "linux-latomic", "debian" ],
 +	},
 +	"debian-arm64" => {
 +		inherit_from => [ "linux-aarch64", "debian" ],
@@ -69,6 +69,10 @@ index 000000000000..4e141aa76407
 +	},
 +	"debian-ia64" => {
 +		inherit_from => [ "linux-ia64", "debian" ],
++		cflags => add("-fzero-call-used-regs=skip"),
++	},
++	"debian-loong64" => {
++		inherit_from => [ "linux64-loongarch64", "debian" ],
 +	},
 +	"debian-m68k" => {
 +		inherit_from => [ "linux-latomic", "debian" ],
@@ -99,59 +103,6 @@ index 000000000000..4e141aa76407
 +		cflags => add("-DL_ENDIAN"),
 +	},
 +
-+	# Temporary MIPS R6 targets. Those will vanish approx in 1.1.1 because
-+	# aes-mips.pl creates proper R6 ASM code. After that, we can inherit from
-+	# the linux*-mips* targets.
-+	"linux-mips32r6" => {
-+	# Configure script adds minimally required -march for assembly
-+	# support, if no -march was specified at command line.
-+		inherit_from     => [ "linux-generic32"],
-+		cflags           => add("-mabi=32"),
-+		perlasm_scheme   => "o32",
-+		shared_ldflag    => add("-mabi=32"),
-+	},
-+	# mips32 and mips64 below refer to contemporary MIPS Architecture
-+	# specifications, MIPS32 and MIPS64, rather than to kernel bitness.
-+	"linux-mips64r6" => {
-+		inherit_from     => [ "linux-generic32"],
-+		cflags           => add("-mabi=n32"),
-+		bn_ops           => "SIXTY_FOUR_BIT RC4_CHAR",
-+		perlasm_scheme   => "n32",
-+		shared_ldflag    => add("-mabi=n32"),
-+		multilib         => "32",
-+	},
-+	"linux64-mips64r6" => {
-+		inherit_from     => [ "linux-generic64"],
-+		cflags           => add("-mabi=64"),
-+		perlasm_scheme   => "64",
-+		shared_ldflag    => add("-mabi=64"),
-+		multilib         => "64",
-+	},
-+	"debian-mipsr6" => {
-+		inherit_from => [ "linux-mips32r6", "debian" ],
-+		cflags => add("-DB_ENDIAN"),
-+	},
-+	"debian-mipsr6el" => {
-+		inherit_from => [ "linux-mips32r6", "debian" ],
-+		cflags => add("-DL_ENDIAN"),
-+	},
-+	"debian-mipsn32r6" => {
-+		inherit_from => [ "linux-mips64r6", "debian" ],
-+		cflags => add("-DB_ENDIAN"),
-+	},
-+	"debian-mipsn32r6el" => {
-+		inherit_from => [ "linux-mips64r6", "debian" ],
-+		cflags => add("-DL_ENDIAN"),
-+	},
-+	"debian-mips64r6" => {
-+		inherit_from => [ "linux64-mips64r6", "debian" ],
-+		cflags => add("-DB_ENDIAN"),
-+	},
-+	"debian-mips64r6el" => {
-+		inherit_from => [ "linux64-mips64r6", "debian" ],
-+		cflags => add("-DL_ENDIAN"),
-+	},
-+
 +	"debian-musl-linux-arm64" => {
 +		inherit_from => [ "linux-aarch64", "debian" ],
 +	},
@@ -171,7 +122,7 @@ index 000000000000..4e141aa76407
 +	},
 +
 +	"debian-nios2" => {
-+		inherit_from => [ "linux-generic32", "debian" ],
++		inherit_from => [ "linux-latomic", "debian" ],
 +	},
 +	"debian-powerpc" => {
 +		inherit_from => [ "linux-ppc", "debian" ],
@@ -213,7 +164,7 @@ index 000000000000..4e141aa76407
 +		inherit_from => [ "linux-latomic", "debian" ],
 +	},
 +	"debian-sparc" => {
-+		inherit_from => [ "linux-generic32", "debian", ],
++		inherit_from => [ "linux-latomic", "debian", ],
 +		asm_arch         => 'sparcv9',
 +		cflags => add("-DB_ENDIAN -DBN_DIV2W"),
 +	},
