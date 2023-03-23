@@ -23,7 +23,7 @@ Signed-off-by: Sebastian Andrzej Siewior <sebastian@breakpoint.cc>
  2 files changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/Configurations/10-main.conf b/Configurations/10-main.conf
-index 8414b34ed9af..84c77c6ed0d8 100644
+index b578a3c2a861..b3b21d39990b 100644
 --- a/Configurations/10-main.conf
 +++ b/Configurations/10-main.conf
 @@ -697,7 +697,7 @@ my %targets = (
@@ -36,15 +36,15 @@ index 8414b34ed9af..84c77c6ed0d8 100644
      "linux-latomic" => {
          inherit_from     => [ "linux-generic32" ],
 diff --git a/Configure b/Configure
-index b00b91ac63f5..702493a26deb 100755
+index 5ac4b5222e4f..978414d914ea 100755
 --- a/Configure
 +++ b/Configure
-@@ -1716,7 +1716,7 @@ unless ($disabled{devcryptoeng}) {
- 
+@@ -1715,7 +1715,7 @@ unless ($disabled{devcryptoeng}) {
  unless ($disabled{ktls}) {
      $config{ktls}="";
+     my $cc = $config{CROSS_COMPILE}.$config{CC};
 -    if ($target =~ m/^linux/) {
 +    if (grep { $_ eq 'afalgeng' } @{$target{enable}}) {
-         my $usr = "/usr/$config{cross_compile_prefix}";
-         chop($usr);
-         if ($config{cross_compile_prefix} eq "") {
+         system("printf '#include <sys/types.h>\n#include <linux/tls.h>' | $cc -E - >/dev/null 2>&1");
+         if ($? != 0) {
+             disable('too-old-kernel', 'ktls');
