@@ -1,12 +1,46 @@
-openssl (3.0.8-1deepin) unstable; urgency=medium
+openssl (3.0.12-1) unstable; urgency=medium
 
-  * update changelog.
+  * Import 3.0.12
+   - CVE-2023-5363 (Incorrect cipher key and IV length processing).
 
- -- LiChengGang <lichenggang@uniontech.com>  Thu, 23 Mar 2023 21:24:38 +0800
+ -- Sebastian Andrzej Siewior <sebastian@breakpoint.cc>  Tue, 24 Oct 2023 21:40:37 +0200
+
+openssl (3.0.11-1) unstable; urgency=medium
+
+  * Import 3.0.11
+
+ -- Sebastian Andrzej Siewior <sebastian@breakpoint.cc>  Tue, 19 Sep 2023 18:58:30 +0200
+
+openssl (3.0.10-1) unstable; urgency=medium
+
+  * Import 3.0.10
+   - CVE-2023-2975 (AES-SIV implementation ignores empty associated data
+     entries) (Closes: #1041818).
+   - CVE-2023-3446 (Excessive time spent checking DH keys and parameters).
+     (Closes: #1041817).
+   - CVE-2023-3817 (Excessive time spent checking DH q parameter value).
+   - Drop bc and m4 from B-D.
+
+ -- Sebastian Andrzej Siewior <sebastian@breakpoint.cc>  Tue, 01 Aug 2023 22:00:05 +0200
+
+openssl (3.0.9-1) unstable; urgency=medium
+
+  * Import 3.0.9
+   - CVE-2023-0464 (Excessive Resource Usage Verifying X.509 Policy
+     Constraints) (Closes: #1034720).
+   - CVE-2023-0465 (Invalid certificate policies in leaf certificates are
+     silently ignored).
+   - CVE-2023-0466 (Certificate policy check not enabled).
+   - Alternative fix for CVE-2022-4304 (Timing Oracle in RSA Decryption).
+   - CVE-2023-2650 (Possible DoS translating ASN.1 object identifiers).
+   - CVE-2023-1255 (Input buffer over-read in AES-XTS implementation on 64 bit ARM).
+   - Add new symbol.
+
+ -- Sebastian Andrzej Siewior <sebastian@breakpoint.cc>  Tue, 30 May 2023 18:12:36 +0200
 
 openssl (3.0.8-1) unstable; urgency=medium
 
-  * Import 3.0.7
+  * Import 3.0.8
     - CVE-2023-0401 (NULL dereference during PKCS7 data verification).
     - CVE-2023-0286 (X.400 address type confusion in X.509 GeneralName).
     - CVE-2023-0217 (NULL dereference validating DSA public key).

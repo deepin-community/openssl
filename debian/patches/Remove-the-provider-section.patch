@@ -11,7 +11,7 @@ Signed-off-by: Sebastian Andrzej Siewior <sebastian@breakpoint.cc>
  1 file changed, 4 insertions(+), 4 deletions(-)
 
 diff --git a/apps/openssl.cnf b/apps/openssl.cnf
-index 03330e0120a2..215768bfe710 100644
+index 12bc40896ef2..c58ef2983912 100644
 --- a/apps/openssl.cnf
 +++ b/apps/openssl.cnf
 @@ -51,11 +51,11 @@ tsa_policy3 = 1.2.3.4.5.7
