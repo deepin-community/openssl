@@ -48,14 +48,8 @@ OPENSSL_LHASH *OPENSSL_LH_new(OPENSSL_LH_HASHFUNC h, OPENSSL_LH_COMPFUNC c)
 {
     OPENSSL_LHASH *ret;
 
-    if ((ret = OPENSSL_zalloc(sizeof(*ret))) == NULL) {
-        /*
-         * Do not set the error code, because the ERR code uses LHASH
-         * and we want to avoid possible endless error loop.
-         * ERR_raise(ERR_LIB_CRYPTO, ERR_R_MALLOC_FAILURE);
-         */
+    if ((ret = OPENSSL_zalloc(sizeof(*ret))) == NULL)
         return NULL;
-    }
     if ((ret->b = OPENSSL_zalloc(sizeof(*ret->b) * MIN_NODES)) == NULL)
         goto err;
     ret->comp = ((c == NULL) ? (OPENSSL_LH_COMPFUNC)strcmp : c);
@@ -264,7 +258,7 @@ static void contract(OPENSSL_LHASH *lh)
         n = OPENSSL_realloc(lh->b,
                             (unsigned int)(sizeof(OPENSSL_LH_NODE *) * lh->pmax));
         if (n == NULL) {
-            /* fputs("realloc error in lhash",stderr); */
+            /* fputs("realloc error in lhash", stderr); */
             lh->error++;
         } else {
             lh->b = n;
@@ -344,18 +338,37 @@ unsigned long OPENSSL_LH_strhash(const char *c)
     return (ret >> 16) ^ ret;
 }
 
+/*
+ * Case insensitive string hashing.
+ *
+ * The lower/upper case bit is masked out (forcing all letters to be capitals).
+ * The major side effect on non-alpha characters is mapping the symbols and
+ * digits into the control character range (which should be harmless).
+ * The duplication (with respect to the hash value) of printable characters
+ * are that '`', '{', '|', '}' and '~' map to '@', '[', '\', ']' and '^'
+ * respectively (which seems tolerable).
+ *
+ * For EBCDIC, the alpha mapping is to lower case, most symbols go to control
+ * characters.  The only duplication is '0' mapping to '^', which is better
+ * than for ASCII.
+ */
 unsigned long ossl_lh_strcasehash(const char *c)
 {
     unsigned long ret = 0;
     long n;
     unsigned long v;
     int r;
+#if defined(CHARSET_EBCDIC) && !defined(CHARSET_EBCDIC_TEST)
+    const long int case_adjust = ~0x40;
+#else
+    const long int case_adjust = ~0x20;
+#endif
 
     if (c == NULL || *c == '\0')
         return ret;
 
     for (n = 0x100; *c != '\0'; n += 0x100) {
-        v = n | ossl_tolower(*c);
+        v = n | (case_adjust & *c);
         r = (int)((v >> 2) ^ v) & 0x0f;
         /* cast to uint64_t to avoid 32 bit shift of 32 bit value */
         ret = (ret << r) | (unsigned long)((uint64_t)ret >> (32 - r));

@@ -1,5 +1,5 @@
 Source: openssl
-Build-Depends: debhelper-compat (= 13), dpkg-dev (>= 1.15.7)
+Build-Depends: debhelper-compat (= 13), dpkg-dev (>= 1.15.7), libzstd-dev, libbrotli-dev
 Section: utils
 Priority: optional
 Maintainer: Debian OpenSSL Team <pkg-openssl-devel@alioth-lists.debian.net>
@@ -33,6 +33,7 @@ Package: libssl3
 Section: libs
 Architecture: any
 Multi-Arch: same
+Breaks: openssh-client (<< 1:9.4p1), openssh-server (<< 1:9.4p1), python3-m2crypto (<< 0.38.0-4)
 Pre-Depends: ${misc:Pre-Depends}
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: Secure Sockets Layer toolkit - shared libraries
