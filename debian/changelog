@@ -1,3 +1,9 @@
+openssl (3.2.0-1deepin1) unstable; urgency=medium
+
+  * Fix detection for riscv64/riscv32.
+
+ -- LiChengGang <lichenggang@uniontech.com>  Tue, 12 Mar 2024 17:36:54 +0800
+
 openssl (3.2.0-1) experimental; urgency=medium
 
   * Import 3.2.0
