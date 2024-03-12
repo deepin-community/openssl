@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2022 The OpenSSL Project Authors. All Rights Reserved.
+ * Copyright 2019-2023 The OpenSSL Project Authors. All Rights Reserved.
  *
  * Licensed under the Apache License 2.0 (the "License").  You may not use
  * this file except in compliance with the License.  You can obtain a copy
@@ -322,7 +322,7 @@ static int test_print_key_using_encoder(const char *alg, const EVP_PKEY *pk)
     return ret;
 }
 
-#ifndef OPENSSL_NO_EC
+#ifndef OPENSSL_NO_ECX
 static int test_print_key_using_encoder_public(const char *alg,
                                                const EVP_PKEY *pk)
 {
@@ -888,6 +888,7 @@ err:
 
 
 #ifndef OPENSSL_NO_EC
+# ifndef OPENSSL_NO_ECX
 /* Array indexes used in test_fromdata_ecx */
 # define PRIV_KEY        0
 # define PUB_KEY         1
@@ -1156,6 +1157,7 @@ err:
 
     return ret;
 }
+# endif /* OPENSSL_NO_ECX */
 
 static int test_fromdata_ec(void)
 {
@@ -1721,11 +1723,10 @@ static OSSL_PARAM *do_construct_hkdf_params(char *digest, char *key,
     return params;
 }
 
-/* Test that EVP_PKEY_CTX_dup() fails gracefully for a KDF */
-static int test_evp_pkey_ctx_dup_kdf_fail(void)
+static int test_evp_pkey_ctx_dup_kdf(void)
 {
     int ret = 0;
-    size_t len = 0;
+    size_t len = 0, dlen = 0;
     EVP_PKEY_CTX *pctx = NULL, *dctx = NULL;
     OSSL_PARAM *params = NULL;
 
@@ -1736,10 +1737,12 @@ static int test_evp_pkey_ctx_dup_kdf_fail(void)
         goto err;
     if (!TEST_int_eq(EVP_PKEY_derive_init_ex(pctx, params), 1))
         goto err;
-    if (!TEST_int_eq(EVP_PKEY_derive(pctx, NULL, &len), 1)
-        || !TEST_size_t_eq(len, SHA256_DIGEST_LENGTH))
+    if (!TEST_ptr(dctx = EVP_PKEY_CTX_dup(pctx)))
         goto err;
-    if (!TEST_ptr_null(dctx = EVP_PKEY_CTX_dup(pctx)))
+    if (!TEST_int_eq(EVP_PKEY_derive(pctx, NULL, &len), 1)
+        || !TEST_size_t_eq(len, SHA256_DIGEST_LENGTH)
+        || !TEST_int_eq(EVP_PKEY_derive(dctx, NULL, &dlen), 1)
+        || !TEST_size_t_eq(dlen, SHA256_DIGEST_LENGTH))
         goto err;
     ret = 1;
 err:
@@ -1759,7 +1762,7 @@ int setup_tests(void)
     if (!TEST_ptr(datadir = test_get_argument(0)))
         return 0;
 
-    ADD_TEST(test_evp_pkey_ctx_dup_kdf_fail);
+    ADD_TEST(test_evp_pkey_ctx_dup_kdf);
     ADD_TEST(test_evp_pkey_get_bn_param_large);
     ADD_TEST(test_fromdata_rsa);
 #ifndef OPENSSL_NO_DH
@@ -1771,7 +1774,9 @@ int setup_tests(void)
     ADD_TEST(test_fromdata_dsa_fips186_4);
 #endif
 #ifndef OPENSSL_NO_EC
+# ifndef OPENSSL_NO_ECX
     ADD_ALL_TESTS(test_fromdata_ecx, 4 * 3);
+# endif
     ADD_TEST(test_fromdata_ec);
     ADD_TEST(test_ec_dup_no_operation);
     ADD_TEST(test_ec_dup_keygen_operation);
