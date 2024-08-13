@@ -1,3 +1,13 @@
+openssl (3.2.0-2deepin1) unstable; urgency=medium
+
+  * Update to latest openssl-3.2 branch.
+    Update to commit
+      462d296ce3822 ("test: add FIPS provider version checks for 3.4 compatibility")
+    Fixes: CVE-2024-5535, CVE-2024-4741, CVE-2024-4603, CVE-2024-2511,
+           CVE-2024-0727, CVE-2023-6237, CVE-2023-6129
+
+ -- Tianyu Chen <sweetyfish@deepin.org>  Tue, 13 Aug 2024 13:41:34 +0800
+
 openssl (3.2.0-2) experimental; urgency=medium
 
   * Use generic target for riscv64.
