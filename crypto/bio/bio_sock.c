@@ -1,5 +1,5 @@
 /*
- * Copyright 1995-2023 The OpenSSL Project Authors. All Rights Reserved.
+ * Copyright 1995-2025 The OpenSSL Project Authors. All Rights Reserved.
  *
  * Licensed under the Apache License 2.0 (the "License").  You may not use
  * this file except in compliance with the License.  You can obtain a copy
@@ -260,7 +260,7 @@ int BIO_get_accept_socket(char *host, int bind_mode)
         return INVALID_SOCKET;
 
     if (BIO_sock_init() != 1)
-        return INVALID_SOCKET;
+        goto err;
 
     if (BIO_lookup(h, p, BIO_LOOKUP_SERVER, AF_UNSPEC, SOCK_STREAM, &res) != 0)
         goto err;
@@ -354,7 +354,7 @@ int BIO_socket_nbio(int s, int mode)
     int l;
 
     l = mode;
-# if defined(FIONBIO) && !defined(OPENSSL_SYS_TANDEM)
+# ifdef FIONBIO
     l = mode;
 
     ret = BIO_socket_ioctl(s, FIONBIO, &l);
@@ -435,7 +435,11 @@ int BIO_socket_wait(int fd, int for_read, time_t max_time)
     struct timeval tv;
     time_t now;
 
+#ifdef _WIN32
+    if ((SOCKET)fd == INVALID_SOCKET)
+#else
     if (fd < 0 || fd >= FD_SETSIZE)
+#endif
         return -1;
     if (max_time == 0)
         return 1;

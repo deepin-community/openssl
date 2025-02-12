@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2023 The OpenSSL Project Authors. All Rights Reserved.
+ * Copyright 2022-2024 The OpenSSL Project Authors. All Rights Reserved.
  *
  * Licensed under the Apache License 2.0 (the "License").  You may not use
  * this file except in compliance with the License.  You can obtain a copy
@@ -53,7 +53,7 @@ static int test_quic_write_read(int idx)
     SSL *clientquic = NULL;
     QUIC_TSERVER *qtserv = NULL;
     int j, k, ret = 0;
-    unsigned char buf[20];
+    unsigned char buf[20], scratch[64];
     static char *msg = "A test message";
     size_t msglen = strlen(msg);
     size_t numbytes = 0;
@@ -152,6 +152,12 @@ static int test_quic_write_read(int idx)
                     || !TEST_mem_eq(buf, numbytes + 1, msg, msglen))
                 goto end;
         }
+
+        /* Test that exporters work. */
+        if (!TEST_true(SSL_export_keying_material(clientquic, scratch,
+                        sizeof(scratch), "test", 4, (unsigned char *)"ctx", 3,
+                        1)))
+            goto end;
 
         if (sess == NULL) {
             /* We didn't supply a session so we're not expecting resumption */
@@ -279,7 +285,7 @@ static int test_fin_only_blocking(void)
 static int test_ciphersuites(void)
 {
     SSL_CTX *ctx = SSL_CTX_new_ex(libctx, NULL, OSSL_QUIC_client_method());
-    SSL *ssl;
+    SSL *ssl = NULL;
     int testresult = 0;
     const STACK_OF(SSL_CIPHER) *ciphers = NULL;
     const SSL_CIPHER *cipher;
@@ -296,8 +302,18 @@ static int test_ciphersuites(void)
     if (!TEST_ptr(ctx))
         return 0;
 
+    /*
+     * Attempting to set TLSv1.2 ciphersuites should succeed, even though they
+     * aren't used in QUIC.
+     */
+    if (!TEST_true(SSL_CTX_set_cipher_list(ctx, "DEFAULT")))
+        goto err;
+
     ssl = SSL_new(ctx);
     if (!TEST_ptr(ssl))
+        goto err;
+
+    if (!TEST_true(SSL_set_cipher_list(ssl, "DEFAULT")))
         goto err;
 
     ciphers = SSL_get_ciphers(ssl);
@@ -490,21 +506,15 @@ static int compare_with_file(BIO *membio)
  */
 static int test_ssl_trace(void)
 {
-    SSL_CTX *cctx = SSL_CTX_new_ex(libctx, NULL, OSSL_QUIC_client_method());
+    SSL_CTX *cctx = NULL;
     SSL *clientquic = NULL;
     QUIC_TSERVER *qtserv = NULL;
     int testresult = 0;
-    BIO *bio = BIO_new(BIO_s_mem());
+    BIO *bio = NULL;
 
-    /*
-     * Ensure we only configure ciphersuites that are available with both the
-     * default and fips providers to get the same output in both cases
-     */
-    if (!TEST_true(SSL_CTX_set_ciphersuites(cctx, "TLS_AES_128_GCM_SHA256")))
-        goto err;
-
-    if (!TEST_ptr(cctx)
-            || !TEST_ptr(bio)
+    if (!TEST_ptr(cctx = SSL_CTX_new_ex(libctx, NULL, OSSL_QUIC_client_method()))
+            || !TEST_ptr(bio = BIO_new(BIO_s_mem()))
+            || !TEST_true(SSL_CTX_set_ciphersuites(cctx, "TLS_AES_128_GCM_SHA256"))
             || !TEST_true(qtest_create_quic_objects(libctx, cctx, NULL, cert,
                                                     privkey,
                                                     QTEST_FLAG_FAKE_TIME,
@@ -518,8 +528,15 @@ static int test_ssl_trace(void)
     if (!TEST_true(qtest_create_quic_connection(qtserv, clientquic)))
         goto err;
 
-    if (!TEST_true(compare_with_file(bio)))
-        goto err;
+    /* Skip the comparison of the trace when the fips provider is used. */
+    if (is_fips) {
+        /* Check whether there was something written. */
+        if (!TEST_int_gt(BIO_pending(bio), 0))
+            goto err;
+    } else {
+        if (!TEST_true(compare_with_file(bio)))
+            goto err;
+    }
 
     testresult = 1;
  err:
@@ -898,6 +915,9 @@ static int test_bio_ssl(void)
         if (i == 1)
             break;
 
+        if (!TEST_true(SSL_set_mode(clientquic, 0)))
+            goto err;
+
         /*
          * Now create a new stream and repeat. The bottom two bits of the stream
          * id represents whether the stream is bidi and whether it is client
@@ -907,6 +927,9 @@ static int test_bio_ssl(void)
         sid = 4;
         stream = SSL_new_stream(clientquic, 0);
         if (!TEST_ptr(stream))
+            goto err;
+
+        if (!TEST_true(SSL_set_mode(stream, 0)))
             goto err;
 
         thisbio = strbio = BIO_new(BIO_f_ssl());
@@ -2064,6 +2087,77 @@ err:
     qtest_fault_free(qtf);
     return testresult;
 }
+
+static int new_called = 0;
+static SSL *cbssl = NULL;
+
+static int new_session_cb(SSL *ssl, SSL_SESSION *sess)
+{
+    new_called++;
+    /*
+     * Remember the SSL ref we were called with. No need to up-ref this. It
+     * should remain valid for the duration of the test.
+     */
+    cbssl = ssl;
+    /*
+     * sess has been up-refed for us, but we don't actually need it so free it
+     * immediately.
+     */
+    SSL_SESSION_free(sess);
+    return 1;
+}
+
+/* Test using a new_session_cb with a QUIC SSL object works as expected */
+static int test_session_cb(void)
+{
+    SSL_CTX *cctx = SSL_CTX_new_ex(libctx, NULL, OSSL_QUIC_client_method());
+    SSL *clientquic = NULL;
+    QUIC_TSERVER *qtserv = NULL;
+    int testresult = 0;
+
+    if (!TEST_ptr(cctx))
+        goto err;
+
+    new_called = 0;
+    cbssl = NULL;
+    SSL_CTX_sess_set_new_cb(cctx, new_session_cb);
+    SSL_CTX_set_session_cache_mode(cctx, SSL_SESS_CACHE_CLIENT);
+
+    if (!TEST_true(qtest_create_quic_objects(libctx, cctx, NULL, cert,
+                                             privkey,
+                                             QTEST_FLAG_FAKE_TIME,
+                                             &qtserv, &clientquic,
+                                             NULL, NULL)))
+        goto err;
+
+    if (!TEST_true(qtest_create_quic_connection(qtserv, clientquic)))
+        goto err;
+
+    /* Process the pending NewSessionTickets */
+    if (!TEST_true(SSL_handle_events(clientquic)))
+        goto err;
+
+    if (!TEST_int_eq(SSL_shutdown(clientquic), 0))
+        goto err;
+
+    /*
+     * Check the callback was called twice (we expect 2 tickets), and with the
+     * correct SSL reference
+     */
+    if (!TEST_int_eq(new_called, 2)
+            || !TEST_ptr_eq(clientquic, cbssl))
+        goto err;
+
+    testresult = 1;
+ err:
+    cbssl = NULL;
+    ossl_quic_tserver_free(qtserv);
+    SSL_free(clientquic);
+    SSL_CTX_free(cctx);
+
+    return testresult;
+}
+
 /***********************************************************************************/
 
 OPT_TEST_DECLARE_USAGE("provider config certsdir datadir\n")
@@ -2155,6 +2249,7 @@ int setup_tests(void)
     ADD_ALL_TESTS(test_noisy_dgram, 2);
     ADD_TEST(test_get_shutdown);
     ADD_ALL_TESTS(test_tparam, OSSL_NELEM(tparam_tests));
+    ADD_TEST(test_session_cb);
 
     return 1;
  err:

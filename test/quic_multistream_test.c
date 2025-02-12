@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 The OpenSSL Project Authors. All Rights Reserved.
+ * Copyright 2023-2024 The OpenSSL Project Authors. All Rights Reserved.
  *
  * Licensed under the Apache License 2.0 (the "License").  You may not use
  * this file except in compliance with the License.  You can obtain a copy
@@ -10,6 +10,7 @@
 #include <openssl/quic.h>
 #include <openssl/bio.h>
 #include <openssl/lhash.h>
+#include <openssl/rand.h>
 #include "internal/quic_tserver.h"
 #include "internal/quic_ssl.h"
 #include "internal/quic_error.h"
@@ -180,6 +181,7 @@ struct script_op {
 #define OPK_C_SKIP_IF_UNBOUND                       48
 #define OPK_S_SET_INJECT_DATAGRAM                   49
 #define OPK_S_SHUTDOWN                              50
+#define OPK_C_STREAM_RESET_FAIL                     54
 
 #define EXPECT_CONN_CLOSE_APP       (1U << 0)
 #define EXPECT_CONN_CLOSE_REMOTE    (1U << 1)
@@ -278,6 +280,8 @@ struct script_op {
     {OPK_S_READ_FAIL, NULL, 0, NULL, #stream_name},
 #define OP_C_STREAM_RESET(stream_name, aec)  \
     {OPK_C_STREAM_RESET, NULL, 0, NULL, #stream_name, (aec)},
+#define OP_C_STREAM_RESET_FAIL(stream_name, aec)  \
+    {OPK_C_STREAM_RESET_FAIL, NULL, 0, NULL, #stream_name, (aec)},
 #define OP_S_ACCEPT_STREAM_WAIT(stream_name)  \
     {OPK_S_ACCEPT_STREAM_WAIT, NULL, 0, NULL, #stream_name},
 #define OP_NEW_THREAD(num_threads, script) \
@@ -348,6 +352,7 @@ static QUIC_TSERVER *s_lock(struct helper *h, struct helper_local *hl);
 static void s_unlock(struct helper *h, struct helper_local *hl);
 
 #define ACQUIRE_S() s_lock(h, hl)
+#define ACQUIRE_S_NOHL() s_lock(h, NULL)
 
 static int check_rejected(struct helper *h, struct helper_local *hl)
 {
@@ -515,7 +520,7 @@ static int *s_checked_out_p(struct helper *h, int thread_idx)
 
 static QUIC_TSERVER *s_lock(struct helper *h, struct helper_local *hl)
 {
-    int *p_checked_out = s_checked_out_p(h, hl->thread_idx);
+    int *p_checked_out = s_checked_out_p(h, hl == NULL ? -1 : hl->thread_idx);
 
     if (h->server_thread.m == NULL || *p_checked_out)
         return h->s;
@@ -1777,6 +1782,7 @@ static int run_script_worker(struct helper *h, const struct script_op *script,
             break;
 
         case OPK_C_STREAM_RESET:
+        case OPK_C_STREAM_RESET_FAIL:
             {
                 SSL_STREAM_RESET_ARGS args = {0};
 
@@ -1784,9 +1790,13 @@ static int run_script_worker(struct helper *h, const struct script_op *script,
                     goto out;
 
                 args.quic_error_code = op->arg2;
-
-                if (!TEST_true(SSL_stream_reset(c_tgt, &args, sizeof(args))))
-                    goto out;
+                if (op->op == OPK_C_STREAM_RESET) {
+                    if (!TEST_true(SSL_stream_reset(c_tgt, &args, sizeof(args))))
+                        goto out;
+                } else {
+                    if (!TEST_false(SSL_stream_reset(c_tgt, &args, sizeof(args))))
+                        goto out;
+                }
             }
             break;
 
@@ -2317,6 +2327,7 @@ static const struct script_op script_10[] = {
 static const struct script_op script_11_child[] = {
     OP_C_ACCEPT_STREAM_WAIT (a)
     OP_C_READ_EXPECT        (a, "foo", 3)
+    OP_SLEEP                (10)
     OP_C_EXPECT_FIN         (a)
 
     OP_END
@@ -5050,6 +5061,136 @@ static const struct script_op script_78[] = {
     OP_END
 };
 
+static QUIC_STATELESS_RESET_TOKEN test_reset_token = {
+    { 0xde, 0xad, 0xbe, 0xef, 0xde, 0xad, 0xbe, 0xef, 0xde, 0xad, 0xbe, 0xef,
+     0xde, 0xad, 0xbe, 0xef }};
+/*
+ * 80. stateless reset
+ * Generate a packet in the following format:
+ * https://www.rfc-editor.org/rfc/rfc9000.html#name-stateless-reset
+ * Stateless Reset {
+ *  Fixed Bits (2): 1
+ *  Unpredictable bits (38..)
+ *  Stateless reset token (128)
+ *  }
+ */
+static int script_79_send_stateless_reset(struct helper *h, QUIC_PKT_HDR *hdr,
+                                          unsigned char *buf, size_t len)
+{
+    unsigned char databuf[64];
+
+    if (h->inject_word1 == 0)
+        return 1;
+
+    h->inject_word1 = 0;
+
+    RAND_bytes(databuf, 64);
+    databuf[0] = 0x40;
+    memcpy(&databuf[48], test_reset_token.token,
+           sizeof(test_reset_token.token));
+
+    if (!SSL_inject_net_dgram(h->c_conn, databuf, sizeof(databuf),
+                             NULL, h->s_net_bio_addr))
+        return 1;
+
+    return 1;
+}
+
+static int script_79_gen_new_conn_id(struct helper *h, QUIC_PKT_HDR *hdr,
+                                     unsigned char *buf, size_t len)
+{
+    int rc = 0;
+    size_t l;
+    unsigned char frame_buf[64];
+    WPACKET wpkt;
+    QUIC_CONN_ID new_cid = {0};
+    OSSL_QUIC_FRAME_NEW_CONN_ID ncid = {0};
+    QUIC_CHANNEL *ch = ossl_quic_tserver_get_channel(ACQUIRE_S_NOHL());
+
+    if (h->inject_word0 == 0)
+        return 1;
+
+    h->inject_word0 = 0;
+
+    if (!TEST_true(WPACKET_init_static_len(&wpkt, frame_buf,
+                                           sizeof(frame_buf), 0)))
+        return 0;
+
+    ossl_quic_channel_get_diag_local_cid(ch, &new_cid);
+
+    ncid.seq_num = 2;
+    ncid.retire_prior_to = 2;
+    ncid.conn_id = new_cid;
+    memcpy(ncid.stateless_reset.token, test_reset_token.token,
+           sizeof(test_reset_token.token));
+
+    if (!TEST_true(ossl_quic_wire_encode_frame_new_conn_id(&wpkt, &ncid)))
+        goto err;
+
+    if (!TEST_true(WPACKET_get_total_written(&wpkt, &l)))
+        goto err;
+
+    if (!qtest_fault_prepend_frame(h->qtf, frame_buf, l))
+        goto err;
+
+    rc = 1;
+err:
+    if (rc)
+        WPACKET_finish(&wpkt);
+    else
+        WPACKET_cleanup(&wpkt);
+
+    return rc;
+}
+
+static int script_79_inject_pkt(struct helper *h, QUIC_PKT_HDR *hdr,
+                                unsigned char *buf, size_t len)
+{
+    if (h->inject_word1 == 1)
+        return script_79_send_stateless_reset(h, hdr, buf, len);
+    else if (h->inject_word0 == 1)
+        return script_79_gen_new_conn_id(h, hdr, buf, len);
+
+    return 1;
+}
+
+static const struct script_op script_79[] = {
+    OP_S_SET_INJECT_PLAIN       (script_79_inject_pkt)
+    OP_C_SET_ALPN               ("ossltest")
+    OP_C_CONNECT_WAIT           ()
+    OP_C_WRITE                  (DEFAULT, "apple", 5)
+    OP_C_CONCLUDE               (DEFAULT)
+    OP_S_BIND_STREAM_ID         (a, C_BIDI_ID(0))
+    OP_S_READ_EXPECT            (a, "apple", 5)
+    OP_SET_INJECT_WORD          (1, 0)
+    OP_S_WRITE                  (a, "apple", 5)
+    OP_C_READ_EXPECT            (DEFAULT, "apple", 5)
+    OP_SET_INJECT_WORD          (0, 1)
+    OP_S_WRITE                  (a, "apple", 5)
+    OP_C_EXPECT_CONN_CLOSE_INFO (0, 0, 0)
+    OP_END
+};
+
+
+/* 87. Test stream reset functionality */
+static const struct script_op script_87[] = {
+    OP_C_SET_ALPN           ("ossltest")
+    OP_C_CONNECT_WAIT       ()
+    OP_C_NEW_STREAM_BIDI    (a, C_BIDI_ID(0))
+    OP_C_WRITE              (a, "apple", 5)
+    OP_C_CONCLUDE           (a)
+    OP_S_BIND_STREAM_ID     (a, C_BIDI_ID(0))
+    OP_S_READ_EXPECT        (a, "apple", 5)
+    OP_S_EXPECT_FIN         (a)
+    OP_S_WRITE              (a, "orange", 6)
+    OP_C_READ_EXPECT        (a, "orange", 6)
+    OP_S_CONCLUDE           (a)
+    OP_C_EXPECT_FIN         (a)
+    OP_SLEEP                (1000)
+    OP_C_STREAM_RESET_FAIL  (a, 42)
+    OP_END
+};
+
 static const struct script_op *const scripts[] = {
     script_1,
     script_2,
@@ -5128,7 +5269,9 @@ static const struct script_op *const scripts[] = {
     script_75,
     script_76,
     script_77,
-    script_78
+    script_78,
+    script_79,
+    script_87
 };
 
 static int test_script(int idx)
@@ -5154,7 +5297,7 @@ static int test_script(int idx)
     }
 #endif
 
-    snprintf(script_name, sizeof(script_name), "script %d", script_idx + 1);
+    BIO_snprintf(script_name, sizeof(script_name), "script %d", script_idx + 1);
 
     TEST_info("Running script %d (order=%d, blocking=%d)", script_idx + 1,
               free_order, blocking);
@@ -5239,8 +5382,8 @@ static ossl_unused int test_dyn_frame_types(int idx)
             s[i].arg2 = forbidden_frame_types[idx].expected_err;
         }
 
-    snprintf(script_name, sizeof(script_name),
-             "dyn script %d", idx);
+    BIO_snprintf(script_name, sizeof(script_name),
+                 "dyn script %d", idx);
 
     return run_script(dyn_frame_types_script, script_name, 0, 0);
 }
@@ -5249,6 +5392,10 @@ OPT_TEST_DECLARE_USAGE("certfile privkeyfile\n")
 
 int setup_tests(void)
 {
+#if defined (_PUT_MODEL_)
+    return TEST_skip("QUIC is not supported by this build");
+#endif
+
     if (!test_skip_common_options()) {
         TEST_error("Error parsing test options\n");
         return 0;

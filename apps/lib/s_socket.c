@@ -1,5 +1,5 @@
 /*
- * Copyright 1995-2023 The OpenSSL Project Authors. All Rights Reserved.
+ * Copyright 1995-2025 The OpenSSL Project Authors. All Rights Reserved.
  *
  * Licensed under the Apache License 2.0 (the "License").  You may not use
  * this file except in compliance with the License.  You can obtain a copy
@@ -89,9 +89,6 @@ int init_client(int *sock, const char *host, const char *port,
     int found = 0;
     int ret;
     int options = 0;
-
-    if (tfo && ba_ret != NULL)
-        *ba_ret = NULL;
 
     if (BIO_sock_init() != 1)
         return 0;
@@ -208,7 +205,7 @@ int init_client(int *sock, const char *host, const char *port,
 
         hostname = BIO_ADDR_hostname_string(BIO_ADDRINFO_address(ai), 1);
         if (hostname != NULL) {
-            BIO_printf(bio_out, "Connecting to %s\n", hostname);
+            BIO_printf(bio_err, "Connecting to %s\n", hostname);
             OPENSSL_free(hostname);
         }
         /* Remove any stale errors from previous connection attempts */
@@ -419,6 +416,12 @@ int do_server(int *accept_sock, const char *host, const char *port,
                 BIO_closesocket(asock);
                 break;
             }
+
+            if (naccept != -1)
+                naccept--;
+            if (naccept == 0)
+                BIO_closesocket(asock);
+
             BIO_set_tcp_ndelay(sock, 1);
             i = (*cb)(sock, type, protocol, context);
 
@@ -449,11 +452,12 @@ int do_server(int *accept_sock, const char *host, const char *port,
 
             BIO_closesocket(sock);
         } else {
+            if (naccept != -1)
+                naccept--;
+
             i = (*cb)(asock, type, protocol, context);
         }
 
-        if (naccept != -1)
-            naccept--;
         if (i < 0 || naccept == 0) {
             BIO_closesocket(asock);
             ret = i;
