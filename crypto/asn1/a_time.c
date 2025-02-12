@@ -1,5 +1,5 @@
 /*
- * Copyright 1999-2023 The OpenSSL Project Authors. All Rights Reserved.
+ * Copyright 1999-2025 The OpenSSL Project Authors. All Rights Reserved.
  *
  * Licensed under the Apache License 2.0 (the "License").  You may not use
  * this file except in compliance with the License.  You can obtain a copy
@@ -295,16 +295,22 @@ ASN1_TIME *ossl_asn1_time_from_tm(ASN1_TIME *s, struct tm *ts, int type)
     tmps->type = type;
     p = (char*)tmps->data;
 
-    if (type == V_ASN1_GENERALIZEDTIME)
+    if (ts->tm_mon > INT_MAX - 1)
+        goto err;
+
+    if (type == V_ASN1_GENERALIZEDTIME) {
+        if (ts->tm_year > INT_MAX - 1900)
+            goto err;
         tmps->length = BIO_snprintf(p, len, "%04d%02d%02d%02d%02d%02dZ",
                                     ts->tm_year + 1900, ts->tm_mon + 1,
                                     ts->tm_mday, ts->tm_hour, ts->tm_min,
                                     ts->tm_sec);
-    else
+    } else {
         tmps->length = BIO_snprintf(p, len, "%02d%02d%02d%02d%02d%02dZ",
                                     ts->tm_year % 100, ts->tm_mon + 1,
                                     ts->tm_mday, ts->tm_hour, ts->tm_min,
                                     ts->tm_sec);
+    }
 
 #ifdef CHARSET_EBCDIC
     ebcdic2ascii(tmps->data, tmps->data, tmps->length);
@@ -486,9 +492,9 @@ int ASN1_TIME_print_ex(BIO *bp, const ASN1_TIME *tm, unsigned long flags)
 int ossl_asn1_time_print_ex(BIO *bp, const ASN1_TIME *tm, unsigned long flags)
 {
     char *v;
-    int gmt = 0, l;
+    int l;
     struct tm stm;
-    const char upper_z = 0x5A, period = 0x2E;
+    const char period = 0x2E;
 
     /* ossl_asn1_time_to_tm will check the time type */
     if (!ossl_asn1_time_to_tm(&stm, tm))
@@ -496,8 +502,6 @@ int ossl_asn1_time_print_ex(BIO *bp, const ASN1_TIME *tm, unsigned long flags)
 
     l = tm->length;
     v = (char *)tm->data;
-    if (v[l - 1] == upper_z)
-        gmt = 1;
 
     if (tm->type == V_ASN1_GENERALIZEDTIME) {
         char *f = NULL;
@@ -508,39 +512,36 @@ int ossl_asn1_time_print_ex(BIO *bp, const ASN1_TIME *tm, unsigned long flags)
          * 'fraction point' in a GeneralizedTime string.
          */
         if (tm->length > 15 && v[14] == period) {
-            f = &v[14];
-            f_len = 1;
-            while (14 + f_len < l && ossl_ascii_isdigit(f[f_len]))
+            /* exclude the . itself */
+            f = &v[15];
+            f_len = 0;
+            while (15 + f_len < l && ossl_ascii_isdigit(f[f_len]))
                 ++f_len;
         }
 
-        if ((flags & ASN1_DTFLGS_TYPE_MASK) == ASN1_DTFLGS_ISO8601) {
-            return BIO_printf(bp, "%4d-%02d-%02d %02d:%02d:%02d%.*s%s",
+        if (f_len > 0) {
+            if ((flags & ASN1_DTFLGS_TYPE_MASK) == ASN1_DTFLGS_ISO8601) {
+                return BIO_printf(bp, "%4d-%02d-%02d %02d:%02d:%02d.%.*sZ",
+                                  stm.tm_year + 1900, stm.tm_mon + 1,
+                                  stm.tm_mday, stm.tm_hour,
+                                  stm.tm_min, stm.tm_sec, f_len, f) > 0;
+            } else {
+                return BIO_printf(bp, "%s %2d %02d:%02d:%02d.%.*s %d GMT",
+                                  _asn1_mon[stm.tm_mon], stm.tm_mday, stm.tm_hour,
+                                  stm.tm_min, stm.tm_sec, f_len, f,
+                                  stm.tm_year + 1900) > 0;
+            }
+        }
+    }
+    if ((flags & ASN1_DTFLGS_TYPE_MASK) == ASN1_DTFLGS_ISO8601) {
+        return BIO_printf(bp, "%4d-%02d-%02d %02d:%02d:%02dZ",
                           stm.tm_year + 1900, stm.tm_mon + 1,
                           stm.tm_mday, stm.tm_hour,
-                          stm.tm_min, stm.tm_sec, f_len, f,
-                          (gmt ? "Z" : "")) > 0;
-        }
-        else {
-            return BIO_printf(bp, "%s %2d %02d:%02d:%02d%.*s %d%s",
-                          _asn1_mon[stm.tm_mon], stm.tm_mday, stm.tm_hour,
-                          stm.tm_min, stm.tm_sec, f_len, f, stm.tm_year + 1900,
-                          (gmt ? " GMT" : "")) > 0;
-        }
+                          stm.tm_min, stm.tm_sec) > 0;
     } else {
-        if ((flags & ASN1_DTFLGS_TYPE_MASK) == ASN1_DTFLGS_ISO8601) {
-            return BIO_printf(bp, "%4d-%02d-%02d %02d:%02d:%02d%s",
-                          stm.tm_year + 1900, stm.tm_mon + 1,
-                          stm.tm_mday, stm.tm_hour,
-                          stm.tm_min, stm.tm_sec,
-                          (gmt ? "Z" : "")) > 0;
-        }
-        else {
-            return BIO_printf(bp, "%s %2d %02d:%02d:%02d %d%s",
+        return BIO_printf(bp, "%s %2d %02d:%02d:%02d %d GMT",
                           _asn1_mon[stm.tm_mon], stm.tm_mday, stm.tm_hour,
-                          stm.tm_min, stm.tm_sec, stm.tm_year + 1900,
-                          (gmt ? " GMT" : "")) > 0;
-        }
+                          stm.tm_min, stm.tm_sec, stm.tm_year + 1900) > 0;
     }
 }
 

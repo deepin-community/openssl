@@ -1,5 +1,5 @@
 #! /usr/bin/env perl
-# Copyright 2019-2023 The OpenSSL Project Authors. All Rights Reserved.
+# Copyright 2019-2024 The OpenSSL Project Authors. All Rights Reserved.
 #
 # Licensed under the Apache License 2.0 (the "License").  You may not use
 # this file except in compliance with the License.  You can obtain a copy
@@ -206,7 +206,7 @@ ok(!run(app(['openssl', 'fipsinstall', '-out', 'fips.cnf', '-module', $infile,
 ok(!run(app(['openssl', 'fipsinstall', '-out', 'fips_fail.cnf', '-module', $infile,
             '-provider_name', 'fips', '-mac_name', 'HMAC',
             '-macopt', 'digest:SHA256', '-macopt', "hexkey:$fipskey",
-            '-section_name', 'fips_sect', '-corrupt_desc', 'SHA1'])),
+            '-section_name', 'fips_sect', '-corrupt_desc', 'SHA2'])),
    "fipsinstall fails when the digest result is corrupted");
 
 # corrupt another digest
@@ -291,6 +291,10 @@ SKIP: {
 SKIP: {
     skip "Skipping Asymmetric RSA corruption test because of no rsa in this build", 1
         if disabled("rsa");
+    run(test(["fips_version_test", "-config", $provconf, "<3.5.0"]),
+             capture => 1, statusvar => \my $exit);
+    skip "FIPS provider version is too new for Asymmetric RSA corruption test", 1
+        if !$exit;
     ok(!run(app(['openssl', 'fipsinstall', '-out', 'fips.cnf', '-module', $infile,
                 '-corrupt_desc', 'RSA_Encrypt',
                 '-corrupt_type', 'KAT_AsymmetricCipher'])),
