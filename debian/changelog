@@ -1,3 +1,9 @@
+openssl (3.2.4-0deepin2) unstable; urgency=medium
+
+  * feat: add sw64 support.
+
+ -- hudeng <hudeng@deepin.org>  Tue, 03 Jun 2025 21:05:42 +0800
+
 openssl (3.2.4-0deepin1) unstable; urgency=medium
 
   * Update to 3.2.4.
