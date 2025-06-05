@@ -42,7 +42,7 @@ else
 endif
 
 ifeq ($(DEB_HOST_ARCH_CPU), amd64)
-	CONFARGS += enable-ec_nistp_64_gcc_128
+	CONFARGS += enable-ec_nistp_64_gcc_128 no-padlockeng
 endif
 
 %:
