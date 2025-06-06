@@ -8,3 +8,4 @@ Remove-the-provider-section.patch
 conf-Serialize-allocation-free-of-ssl_names.patch
 Always-call-OPENSSL_cleanup-prior-to-exit.patch
 Add-support-for-Zhaoxin-SM2-3-4-instruction.patch
+deepin-sw64-support.patch
