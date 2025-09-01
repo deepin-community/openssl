@@ -1,3 +1,9 @@
+openssl (3.2.4-0deepin4) unstable; urgency=medium
+
+  * support tlcp for GM-T-0024-2014.
+
+ -- luxinyou <luxinyou@uniontech.com>  Mon, 01 Sep 2025 16:35:08 +0800
+
 openssl (3.2.4-0deepin3) unstable; urgency=medium
 
   * support architecure for sw64 compile.
