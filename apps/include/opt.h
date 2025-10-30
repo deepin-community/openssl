@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2023 The OpenSSL Project Authors. All Rights Reserved.
+ * Copyright 2018-2025 The OpenSSL Project Authors. All Rights Reserved.
  *
  * Licensed under the Apache License 2.0 (the "License").  You may not use
  * this file except in compliance with the License.  You can obtain a copy
@@ -157,7 +157,8 @@
         OPT_S_NOTLS1_3, OPT_S_BUGS, OPT_S_NO_COMP, OPT_S_NOTICKET, \
         OPT_S_SERVERPREF, OPT_S_LEGACYRENEG, OPT_S_CLIENTRENEG, \
         OPT_S_LEGACYCONN, \
-        OPT_S_ONRESUMP, OPT_S_NOLEGACYCONN, OPT_S_ALLOW_NO_DHE_KEX, \
+        OPT_S_ONRESUMP, OPT_S_NOLEGACYCONN, \
+        OPT_S_ALLOW_NO_DHE_KEX, OPT_S_PREFER_NO_DHE_KEX, \
         OPT_S_PRIORITIZE_CHACHA, \
         OPT_S_STRICT, OPT_S_SIGALGS, OPT_S_CLIENTSIGALGS, OPT_S_GROUPS, \
         OPT_S_CURVES, OPT_S_NAMEDCURVE, OPT_S_CIPHER, OPT_S_CIPHERSUITES, \
@@ -198,6 +199,8 @@
             "Disallow initial connection to servers that don't support RI"}, \
         {"allow_no_dhe_kex", OPT_S_ALLOW_NO_DHE_KEX, '-', \
             "In TLSv1.3 allow non-(ec)dhe based key exchange on resumption"}, \
+        {"prefer_no_dhe_kex", OPT_S_PREFER_NO_DHE_KEX, '-', \
+            "In TLSv1.3 prefer non-(ec)dhe over (ec)dhe-based key exchange on resumption"}, \
         {"prioritize_chacha", OPT_S_PRIORITIZE_CHACHA, '-', \
             "Prioritize ChaCha ciphers when preferred by clients"}, \
         {"strict", OPT_S_STRICT, '-', \
@@ -248,6 +251,7 @@
         case OPT_S_ONRESUMP: \
         case OPT_S_NOLEGACYCONN: \
         case OPT_S_ALLOW_NO_DHE_KEX: \
+        case OPT_S_PREFER_NO_DHE_KEX: \
         case OPT_S_PRIORITIZE_CHACHA: \
         case OPT_S_STRICT: \
         case OPT_S_SIGALGS: \
@@ -291,6 +295,7 @@
 # define OPT_PROV_ENUM \
         OPT_PROV__FIRST=1600, \
         OPT_PROV_PROVIDER, OPT_PROV_PROVIDER_PATH, OPT_PROV_PROPQUERY, \
+        OPT_PROV_PARAM, \
         OPT_PROV__LAST
 
 # define OPT_CONFIG_OPTION \
@@ -300,12 +305,14 @@
         OPT_SECTION("Provider"), \
         { "provider-path", OPT_PROV_PROVIDER_PATH, 's', "Provider load path (must be before 'provider' argument if required)" }, \
         { "provider", OPT_PROV_PROVIDER, 's', "Provider to load (can be specified multiple times)" }, \
+        { "provparam", OPT_PROV_PARAM, 's', "Set a provider key-value parameter" }, \
         { "propquery", OPT_PROV_PROPQUERY, 's', "Property query used when fetching algorithms" }
 
 # define OPT_PROV_CASES \
         OPT_PROV__FIRST: case OPT_PROV__LAST: break; \
         case OPT_PROV_PROVIDER: \
         case OPT_PROV_PROVIDER_PATH: \
+        case OPT_PROV_PARAM: \
         case OPT_PROV_PROPQUERY
 
 /*

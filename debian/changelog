@@ -1,49 +1,207 @@
-openssl (3.2.4-0deepin5) unstable; urgency=medium
+openssl (3.5.4-1) unstable; urgency=medium
 
-  * bugfix Zhaoxin.GM certificate verify error due to without setting default user id.
+  * Import 3.5.4
+   - CVE-2025-9230 (Out-of-bounds read & write in RFC 3211 KEK Unwrap)
+   - CVE-2025-9231 (Timing side-channel in SM2 algorithm on 64 bit ARM)
+   - CVE-2025-9232 (Out-of-bounds read in HTTP client no_proxy handling)
 
- -- luxinyou <luxinyou@uniontech.com>  Mon, 11 Sep 2025 16:00:08 +0800
+ -- Sebastian Andrzej Siewior <sebastian@breakpoint.cc>  Tue, 30 Sep 2025 21:54:39 +0200
 
-openssl (3.2.4-0deepin4) unstable; urgency=medium
+openssl (3.5.3-1) unstable; urgency=medium
 
-  * support tlcp for GM-T-0024-2014.
+  * Import 3.5.3
+  * Drop pic & Bsymbolic patches. This shouldn't be needed anymore.
 
- -- luxinyou <luxinyou@uniontech.com>  Mon, 01 Sep 2025 16:35:08 +0800
+ -- Sebastian Andrzej Siewior <sebastian@breakpoint.cc>  Wed, 17 Sep 2025 21:39:04 +0200
 
-openssl (3.2.4-0deepin3) unstable; urgency=medium
+openssl (3.5.2-1) unstable; urgency=medium
 
-  * support architecure for sw64 compile.
+  * Import 3.5.2
 
- -- luxinyou <luxinyou@uniontech.com>  Fri, 06 Jun 2025 17:18:08 +0800
+ -- Sebastian Andrzej Siewior <sebastian@breakpoint.cc>  Sun, 10 Aug 2025 11:30:37 +0200
 
-openssl (3.2.4-0deepin2) unstable; urgency=medium
+openssl (3.5.1-1) unstable; urgency=medium
 
-  * add support Zhaoxin-SM2-3-4 instruction with compiler option no-padlockeng.
+  * Import 3.5.1
 
- -- luxinyou <luxinyou@uniontech.com>  Thu, 05 Jun 2025 21:48:08 +0800
+ -- Sebastian Andrzej Siewior <sebastian@breakpoint.cc>  Sat, 12 Jul 2025 18:49:06 +0200
 
-openssl (3.2.4-0deepin1) unstable; urgency=medium
+openssl (3.5.0-2) unstable; urgency=medium
 
-  * Update to 3.2.4.
-    Fixes: CVE-2024-9143, CVE-2024-13176, CVE-2024-12797
+  * Fix P-384 curve on lower-than-P9 PPC64 targets Closes: #1106516).
+  * CVE-2025-4575 ("The x509 application adds trusted use instead of
+    rejected use") (Closes: #1106322).
 
- -- Tianyu Chen <sweetyfish@deepin.org>  Wed, 12 Feb 2025 14:20:08 +0800
+ -- Sebastian Andrzej Siewior <sebastian@breakpoint.cc>  Wed, 28 May 2025 22:13:00 +0200
 
-openssl (3.2.0-2deepin2) unstable; urgency=medium
+openssl (3.5.0-1) unstable; urgency=medium
 
-  * fix CVE-2024-6119.
+  * Import 3.5.0
+  * Upload to unstable.
 
- -- kongxinglong <kongxinglong@uniontech.com>  Thu, 17 Oct 2024 14:21:08 +0800
+ -- Sebastian Andrzej Siewior <sebastian@breakpoint.cc>  Tue, 08 Apr 2025 21:15:30 +0200
 
-openssl (3.2.0-2deepin1) unstable; urgency=medium
+openssl (3.5.0~~beta1-1) experimental; urgency=medium
 
+  * Import 3.5.0-beta1.
+
+ -- Sebastian Andrzej Siewior <sebastian@breakpoint.cc>  Wed, 26 Mar 2025 21:38:19 +0100
+
+openssl (3.5.0~~alpha1-1) experimental; urgency=medium
+
+  * Import 3.5.0-alpha1.
+  * Remove usr/share/doc/libssl3 (Closes: #1098515).
+
+ -- Sebastian Andrzej Siewior <sebastian@breakpoint.cc>  Wed, 12 Mar 2025 22:08:55 +0100
+
+openssl (3.4.1-1) unstable; urgency=medium
+
+  * Import 3.4.1
+  - CVE-2024-12797 (RFC7250 handshakes with unauthenticated servers don't
+    abort as expected) (Closes: #1095765).
+  - CVE-2024-13176 (Timing side-channel in ECDSA signature computation)
+    (Closes: #1094027).
+  - Compile on LoongArch again (Closes: #1092307).
+
+ -- Sebastian Andrzej Siewior <sebastian@breakpoint.cc>  Tue, 11 Feb 2025 21:30:30 +0100
+
+openssl (3.4.0-2) unstable; urgency=medium
+
+  * Disable padlockeng on non-x86 architectures.
+  * Upload to unstable.
+
+ -- Sebastian Andrzej Siewior <sebastian@breakpoint.cc>  Mon, 06 Jan 2025 19:01:42 +0100
+
+openssl (3.4.0-1) experimental; urgency=medium
+
+  * Import 3.4.0
+  - CVE-2024-9143 (Low-level invalid GF(2^m) parameters lead to OOB memory
+    access) (Closes: #1085378).
+
+ -- Sebastian Andrzej Siewior <sebastian@breakpoint.cc>  Wed, 23 Oct 2024 21:18:43 +0200
+
+openssl (3.4.0~~beta1-2) experimental; urgency=medium
+
+  * Add a patch to avoid using other memory allocations if custom malloc is
+    provided.
+  * Add a patch to check length in the SPARC assembly implementation of
+    AES-CBC.
+
+ -- Sebastian Andrzej Siewior <sebastian@breakpoint.cc>  Sun, 13 Oct 2024 22:07:10 +0200
+
+openssl (3.4.0~~beta1-1) experimental; urgency=medium
+
+  * Import 3.4.0-beta1
+
+ -- Sebastian Andrzej Siewior <sebastian@breakpoint.cc>  Mon, 07 Oct 2024 23:03:28 +0200
+
+openssl (3.3.2-1) unstable; urgency=medium
+
+  * Import 3.3.2.
+    - CVE-2024-6119 (Possible denial of service in X.509 name checks).
+    - CVE-2024-5535 (SSL_select_next_proto buffer overread)
+      (Closes: #1074487).
+
+ -- Sebastian Andrzej Siewior <sebastian@breakpoint.cc>  Tue, 03 Sep 2024 21:43:24 +0200
+
+openssl (3.3.1-7) unstable; urgency=medium
+
+  * Make libssl3t64 depend on openssl-provider-legacy (See further development
+    in #965041).
+
+ -- Sebastian Andrzej Siewior <sebastian@breakpoint.cc>  Mon, 19 Aug 2024 23:38:33 +0200
+
+openssl (3.3.1-6) unstable; urgency=medium
+
+  [ Sebastian Andrzej Siewior ]
+  * Enable ec_nistp_64_gcc_128 on arm64, ppc64el, riscv64. Initially suggested
+    by Joel Stanley.
+  * Add a "prefix" for pkg-config and cmake exporter
+    (Closes: #1078509, #1078020).
+  * Add Breaks/ Replaces to the legacy provider also against libssl3
+    (Closes: #1078551).
+  * Upload to unstable.
+
+  [ Debian Janitor ]
+  * Set upstream metadata fields: Bug-Database, Bug-Submit, Repository,
+    Repository-Browse.
+  * Fix day-of-week for changelog entries 0.9.8a-7, 0.9.8a-6, 0.9.8a-4.
+
+ -- Sebastian Andrzej Siewior <sebastian@breakpoint.cc>  Tue, 13 Aug 2024 21:39:36 +0200
+
+openssl (3.3.1-5) experimental; urgency=medium
+
+  * Split the legacy provider into its own package (Closes: #965041).
+  * Add the FIPS provider (Closes: #1050210).
+  * Reintroduce the provider section back in the default openssl.cnf. This is
+    was to keep compatibility with the openssl 1.1 series. Adding makes it
+    easier to add/ enable provides such as fips.
+
+ -- Sebastian Andrzej Siewior <sebastian@breakpoint.cc>  Sun, 04 Aug 2024 23:22:06 +0200
+
+openssl (3.3.1-2) unstable; urgency=medium
+
+  * Upload to unstable.
+  * Add support for hurd-amd64, patch by Samuel Thibault (Closes: #1076324).
+  * Use the static archive from the shared build.
+
+ -- Sebastian Andrzej Siewior <sebastian@breakpoint.cc>  Sat, 03 Aug 2024 16:17:50 +0200
+
+openssl (3.3.1-1) experimental; urgency=medium
+
+  * Import 3.3.1.
+    - CVE-2024-4603 (Excessive time spent checking DSA keys and parameters)
+      (Closes: #1071972).
+    - CVE-2024-4741 (Use After Free with SSL_free_buffers)
+      (Closes: #1072113).
+
+ -- Sebastian Andrzej Siewior <sebastian@breakpoint.cc>  Tue, 04 Jun 2024 18:37:30 +0200
+
+openssl (3.3.0-1) experimental; urgency=medium
+
+  * Import 3.3.0.
+    - CVE-2024-2511 (Unbounded memory growth with session handling in TLSv1.3)
+      (Closes: #1068658).
+
+ -- Sebastian Andrzej Siewior <sebastian@breakpoint.cc>  Thu, 11 Apr 2024 21:49:45 +0200
+
+openssl (3.3.0~beta1-1) experimental; urgency=medium
+
+  * Import 3.3.0-beta1.
+
+ -- Sebastian Andrzej Siewior <sebastian@breakpoint.cc>  Fri, 05 Apr 2024 23:09:03 +0200
+
+openssl (3.2.1-3) unstable; urgency=medium
+
+  * Upload to unstable.
+  * Correct prvious security level in NEWS file (Closes: #1066116).
+
+ -- Sebastian Andrzej Siewior <sebastian@breakpoint.cc>  Thu, 04 Apr 2024 22:00:04 +0200
+
+openssl (3.2.1-2) experimental; urgency=medium
+
+  * Disable brotli and enable zlib for certificate compression.
   * Update to latest openssl-3.2 branch.
-    Update to commit
-      462d296ce3822 ("test: add FIPS provider version checks for 3.4 compatibility")
-    Fixes: CVE-2024-5535, CVE-2024-4741, CVE-2024-4603, CVE-2024-2511,
-           CVE-2024-0727, CVE-2023-6237, CVE-2023-6129
 
- -- Tianyu Chen <sweetyfish@deepin.org>  Tue, 13 Aug 2024 13:41:34 +0800
+ -- Sebastian Andrzej Siewior <sebastian@breakpoint.cc>  Thu, 22 Feb 2024 21:41:18 +0100
+
+openssl (3.2.1-1.1~exp1) experimental; urgency=medium
+
+  * Non-maintainer upload.
+  * Rename libraries for 64-bit time_t transition.
+
+ -- Steve Langasek <vorlon@debian.org>  Mon, 19 Feb 2024 07:33:51 +0000
+
+openssl (3.2.1-1) experimental; urgency=medium
+
+  * Import 3.2.1
+   - CVE-2024-0727 (PKCS12 Decoding crashes). (Closes: #1061582).
+   - CVE-2023-6237 (Excessive time spent checking invalid RSA public keys)
+     (Closes: #1060858).
+   - CVE-2023-6129 (POLY1305 MAC implementation corrupts vector registers on
+     PowerPC) (Closes: #1060347).
+
+ -- Sebastian Andrzej Siewior <sebastian@breakpoint.cc>  Sat, 03 Feb 2024 17:23:00 +0100
 
 openssl (3.2.0-2) experimental; urgency=medium
 
@@ -1988,7 +2146,7 @@ openssl (0.9.8a-7) unstable; urgency=high
   * Call conn_state() if the BIO is not in the BIO_CONN_S_OK state
     (Closes: #352047).  RC bug affecting testing, so urgency high.
 
- -- Kurt Roeckx <kurt@roeckx.be>  Sat,  9 Feb 2006 19:07:56 +0100
+ -- Kurt Roeckx <kurt@roeckx.be>  Thu, 09 Feb 2006 19:07:56 +0100
 
 openssl (0.9.8a-6) unstable; urgency=low
 
@@ -2004,7 +2162,7 @@ openssl (0.9.8a-6) unstable; urgency=low
     in an "decryption failed or bad record mac" error in case
     both sides were using zlib compression.  (Closes: #338006)
 
- -- Kurt Roeckx <kurt@roeckx.be>  Mon, 21 Jan 2006 16:25:41 +0100
+ -- Kurt Roeckx <kurt@roeckx.be>  Sat, 21 Jan 2006 16:25:41 +0100
 
 openssl (0.9.8a-5) unstable; urgency=low
 
@@ -2034,7 +2192,7 @@ openssl (0.9.8a-4) unstable; urgency=low
     not fail the build process if an error is found.
   * Add build dependency on bc for the regression tests.
 
- -- Kurt Roeckx <kurt@roeckx.be>  Wed, 13 Nov 2005 16:01:05 +0100
+ -- Kurt Roeckx <kurt@roeckx.be>  Sun, 13 Nov 2005 16:01:05 +0100
 
 openssl (0.9.8a-3) unstable; urgency=high
 

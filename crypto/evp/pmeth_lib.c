@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2024 The OpenSSL Project Authors. All Rights Reserved.
+ * Copyright 2006-2025 The OpenSSL Project Authors. All Rights Reserved.
  *
  * Licensed under the Apache License 2.0 (the "License").  You may not use
  * this file except in compliance with the License.  You can obtain a copy
@@ -132,24 +132,6 @@ EVP_PKEY_METHOD *EVP_PKEY_meth_new(int id, int flags)
     pmeth->pkey_id = id;
     pmeth->flags = flags | EVP_PKEY_FLAG_DYNAMIC;
     return pmeth;
-}
-
-static void help_get_legacy_alg_type_from_keymgmt(const char *keytype,
-                                                  void *arg)
-{
-    int *type = arg;
-
-    if (*type == NID_undef)
-        *type = evp_pkey_name2type(keytype);
-}
-
-static int get_legacy_alg_type_from_keymgmt(const EVP_KEYMGMT *keymgmt)
-{
-    int type = NID_undef;
-
-    EVP_KEYMGMT_names_do_all(keymgmt, help_get_legacy_alg_type_from_keymgmt,
-                             &type);
-    return type;
 }
 #endif /* FIPS_MODULE */
 
@@ -288,7 +270,7 @@ static EVP_PKEY_CTX *int_ctx_new(OSSL_LIB_CTX *libctx,
          * directly.
          */
         if (keymgmt != NULL) {
-            int tmp_id = get_legacy_alg_type_from_keymgmt(keymgmt);
+            int tmp_id = evp_keymgmt_get_legacy_alg(keymgmt);
 
             if (tmp_id != NID_undef) {
                 if (id == -1) {
@@ -339,9 +321,13 @@ static EVP_PKEY_CTX *int_ctx_new(OSSL_LIB_CTX *libctx,
     ret->engine = e;
     ret->pmeth = pmeth;
     ret->operation = EVP_PKEY_OP_UNDEFINED;
+
+    if (pkey != NULL && !EVP_PKEY_up_ref(pkey)) {
+        EVP_PKEY_CTX_free(ret);
+        return NULL;
+    }
+
     ret->pkey = pkey;
-    if (pkey != NULL)
-        EVP_PKEY_up_ref(pkey);
 
     if (pmeth != NULL && pmeth->init != NULL) {
         if (pmeth->init(ret) <= 0) {
@@ -479,8 +465,9 @@ EVP_PKEY_CTX *EVP_PKEY_CTX_dup(const EVP_PKEY_CTX *pctx)
     if (rctx == NULL)
         return NULL;
 
-    if (pctx->pkey != NULL)
-        EVP_PKEY_up_ref(pctx->pkey);
+    if (pctx->pkey != NULL && !EVP_PKEY_up_ref(pctx->pkey))
+        goto err;
+
     rctx->pkey = pctx->pkey;
     rctx->operation = pctx->operation;
     rctx->libctx = pctx->libctx;
@@ -492,6 +479,12 @@ EVP_PKEY_CTX *EVP_PKEY_CTX_dup(const EVP_PKEY_CTX *pctx)
             goto err;
     }
     rctx->legacy_keytype = pctx->legacy_keytype;
+
+    if (pctx->keymgmt != NULL) {
+        if (!EVP_KEYMGMT_up_ref(pctx->keymgmt))
+            goto err;
+        rctx->keymgmt = pctx->keymgmt;
+    }
 
     if (EVP_PKEY_CTX_IS_DERIVE_OP(pctx)) {
         if (pctx->op.kex.exchange != NULL) {
@@ -587,14 +580,18 @@ EVP_PKEY_CTX *EVP_PKEY_CTX_dup(const EVP_PKEY_CTX *pctx)
     rctx->engine = pctx->engine;
 # endif
 
-    if (pctx->peerkey != NULL)
-        EVP_PKEY_up_ref(pctx->peerkey);
+    if (pctx->peerkey != NULL && !EVP_PKEY_up_ref(pctx->peerkey))
+        goto err;
+
     rctx->peerkey = pctx->peerkey;
 
     if (pctx->pmeth == NULL) {
         if (rctx->operation == EVP_PKEY_OP_UNDEFINED) {
             EVP_KEYMGMT *tmp_keymgmt = pctx->keymgmt;
             void *provkey;
+
+            if (pctx->pkey == NULL)
+                return rctx;
 
             provkey = evp_pkey_export_to_provider(pctx->pkey, pctx->libctx,
                                                   &tmp_keymgmt, pctx->propquery);
@@ -713,8 +710,9 @@ int EVP_PKEY_CTX_set_params(EVP_PKEY_CTX *ctx, const OSSL_PARAM *params)
                 ctx->op.encap.kem->set_ctx_params(ctx->op.encap.algctx,
                                                   params);
         break;
-#ifndef FIPS_MODULE
     case EVP_PKEY_STATE_UNKNOWN:
+        break;
+#ifndef FIPS_MODULE
     case EVP_PKEY_STATE_LEGACY:
         return evp_pkey_ctx_set_params_to_ctrl(ctx, params);
 #endif
@@ -750,9 +748,16 @@ int EVP_PKEY_CTX_get_params(EVP_PKEY_CTX *ctx, OSSL_PARAM *params)
             return
                 ctx->op.encap.kem->get_ctx_params(ctx->op.encap.algctx,
                                                   params);
+        if (EVP_PKEY_CTX_IS_GEN_OP(ctx)
+            && ctx->keymgmt != NULL
+            && ctx->keymgmt->gen_get_params != NULL)
+            return
+                evp_keymgmt_gen_get_params(ctx->keymgmt, ctx->op.keymgmt.genctx,
+                                           params);
+        break;
+    case EVP_PKEY_STATE_UNKNOWN:
         break;
 #ifndef FIPS_MODULE
-    case EVP_PKEY_STATE_UNKNOWN:
     case EVP_PKEY_STATE_LEGACY:
         return evp_pkey_ctx_get_params_to_ctrl(ctx, params);
 #endif
@@ -794,6 +799,13 @@ const OSSL_PARAM *EVP_PKEY_CTX_gettable_params(const EVP_PKEY_CTX *ctx)
         provctx = ossl_provider_ctx(EVP_KEM_get0_provider(ctx->op.encap.kem));
         return ctx->op.encap.kem->gettable_ctx_params(ctx->op.encap.algctx,
                                                       provctx);
+    }
+    if (EVP_PKEY_CTX_IS_GEN_OP(ctx)
+            && ctx->keymgmt != NULL
+            && ctx->keymgmt->gen_gettable_params != NULL) {
+        provctx = ossl_provider_ctx(EVP_KEYMGMT_get0_provider(ctx->keymgmt));
+        return ctx->keymgmt->gen_gettable_params(ctx->op.keymgmt.genctx,
+                                                 provctx);
     }
     return NULL;
 }

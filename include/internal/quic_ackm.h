@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2023 The OpenSSL Project Authors. All Rights Reserved.
+ * Copyright 2022-2025 The OpenSSL Project Authors. All Rights Reserved.
  *
  * Licensed under the Apache License 2.0 (the "License").  You may not use
  * this file except in compliance with the License.  You can obtain a copy
@@ -13,18 +13,17 @@
 # include "internal/quic_cc.h"
 # include "internal/quic_types.h"
 # include "internal/quic_wire.h"
+# include "internal/quic_predef.h"
 # include "internal/time.h"
 # include "internal/list.h"
 
 # ifndef OPENSSL_NO_QUIC
 
-typedef struct ossl_ackm_st OSSL_ACKM;
-
 OSSL_ACKM *ossl_ackm_new(OSSL_TIME (*now)(void *arg),
                          void *now_arg,
                          OSSL_STATM *statm,
                          const OSSL_CC_METHOD *cc_method,
-                         OSSL_CC_DATA *cc_data);
+                         OSSL_CC_DATA *cc_data, int is_server);
 void ossl_ackm_free(OSSL_ACKM *ackm);
 
 void ossl_ackm_set_loss_detection_deadline_callback(OSSL_ACKM *ackm,
@@ -116,7 +115,7 @@ struct ossl_ackm_tx_pkt_st {
     void (*on_discarded)(void *arg);
     void  *cb_arg;
 
-    /* 
+    /*
      * (Internal use fields; must be zero-initialized.)
      *
      * Keep a TX history list, anext is used to manifest

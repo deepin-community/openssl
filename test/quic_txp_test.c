@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2023 The OpenSSL Project Authors. All Rights Reserved.
+ * Copyright 2022-2025 The OpenSSL Project Authors. All Rights Reserved.
  *
  * Licensed under the Apache License 2.0 (the "License").  You may not use
  * this file except in compliance with the License.  You can obtain a copy
@@ -108,6 +108,17 @@ static void helper_cleanup(struct helper *h)
     BIO_free(h->bio2);
 }
 
+static void demux_default_handler(QUIC_URXE *e, void *arg,
+                                  const QUIC_CONN_ID *dcid)
+{
+    struct helper *h = arg;
+
+    if (dcid == NULL || !ossl_quic_conn_id_eq(dcid, &dcid_1))
+        return;
+
+    ossl_qrx_inject_urxe(h->qrx, e);
+}
+
 static int helper_init(struct helper *h)
 {
     int rc = 0;
@@ -171,7 +182,8 @@ static int helper_init(struct helper *h)
     if (!TEST_ptr(h->args.ackm = ossl_ackm_new(fake_now, NULL,
                                                &h->statm,
                                                h->cc_method,
-                                               h->cc_data)))
+                                               h->cc_data,
+                                               /* is_server */0)))
         goto err;
 
     if (!TEST_true(ossl_quic_stream_map_init(&h->qsm, NULL, NULL,
@@ -196,22 +208,28 @@ static int helper_init(struct helper *h)
     h->args.cc_method               = h->cc_method;
     h->args.cc_data                 = h->cc_data;
     h->args.now                     = fake_now;
+    h->args.protocol_version        = QUIC_VERSION_1;
 
     if (!TEST_ptr(h->txp = ossl_quic_tx_packetiser_new(&h->args)))
         goto err;
 
+    /*
+     * Our helper should always skip validation
+     * as the tests are not written to expect delayed connections
+     */
+    ossl_quic_tx_packetiser_set_validated(h->txp);
+
     if (!TEST_ptr(h->demux = ossl_quic_demux_new(h->bio2, 8,
                                                  fake_now, NULL)))
         goto err;
+
+    ossl_quic_demux_set_default_handler(h->demux, demux_default_handler, h);
 
     h->qrx_args.demux                  = h->demux;
     h->qrx_args.short_conn_id_len      = 8;
     h->qrx_args.max_deferred           = 32;
 
     if (!TEST_ptr(h->qrx = ossl_qrx_new(&h->qrx_args)))
-        goto err;
-
-    if (!TEST_true(ossl_qrx_add_dst_conn_id(h->qrx, &dcid_1)))
         goto err;
 
     ossl_qrx_allow_1rtt_processing(h->qrx);

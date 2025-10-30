@@ -426,7 +426,7 @@ static int test_WPACKET_init_der(void)
         if (i == 0) {
             if (!TEST_true(WPACKET_init_null_der(&pkt)))
                 return 0;
-        } else { 
+        } else {
             if (!TEST_true(WPACKET_init_der(&pkt, sbuf, sizeof(sbuf))))
                 return 0;
         }
@@ -588,9 +588,9 @@ static int test_WPACKET_quic_vlint_random(void)
 
     for (i = 0; i < 10000; ++i) {
         if (!TEST_int_gt(RAND_bytes(rand_data, sizeof(rand_data)), 0))
-            return cleanup(&pkt);
+            return 0;
 
-        memcpy(&expected, rand_data, sizeof(uint64_t));
+        memcpy(&expected, rand_data, sizeof(expected));
 
         /*
          * Ensure that all size classes get tested with equal probability.

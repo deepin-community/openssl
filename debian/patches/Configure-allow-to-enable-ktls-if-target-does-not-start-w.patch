@@ -23,7 +23,7 @@ Signed-off-by: Sebastian Andrzej Siewior <sebastian@breakpoint.cc>
  2 files changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/Configurations/10-main.conf b/Configurations/10-main.conf
-index d1a15a115274..d15d28499a21 100644
+index cba57b41273f..7fa3eeae412f 100644
 --- a/Configurations/10-main.conf
 +++ b/Configurations/10-main.conf
 @@ -693,7 +693,7 @@ my %targets = (
@@ -36,10 +36,10 @@ index d1a15a115274..d15d28499a21 100644
      "linux-latomic" => {
          inherit_from     => [ "linux-generic32" ],
 diff --git a/Configure b/Configure
-index cbba1749b5a3..a69068121949 100755
+index 499585438a16..98c0bcb92a79 100755
 --- a/Configure
 +++ b/Configure
-@@ -1765,7 +1765,7 @@ unless ($disabled{devcryptoeng}) {
+@@ -1836,7 +1836,7 @@ unless ($disabled{devcryptoeng}) {
  unless ($disabled{ktls}) {
      $config{ktls}="";
      my $cc = $config{CROSS_COMPILE}.$config{CC};

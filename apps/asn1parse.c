@@ -40,8 +40,8 @@ const OPTIONS asn1parse_options[] = {
     {"length", OPT_LENGTH, 'p', "length of section in file"},
     {"strparse", OPT_STRPARSE, 'p',
      "offset; a series of these can be used to 'dig'"},
-    {"genstr", OPT_GENSTR, 's', "string to generate ASN1 structure from"},
     {OPT_MORE_STR, 0, 0, "into multiple ASN1 blob wrappings"},
+    {"genstr", OPT_GENSTR, 's', "string to generate ASN1 structure from"},
     {"genconf", OPT_GENCONF, 's', "file to generate ASN1 structure from"},
     {"strictpem", OPT_STRICTPEM, 0,
      "equivalent to '-inform pem' (obsolete)"},
@@ -217,6 +217,9 @@ int asn1parse_main(int argc, char **argv)
                 i = BIO_read(in, &(buf->data[num]), BUFSIZ);
                 if (i <= 0)
                     break;
+                /* make sure num doesn't overflow */
+                if (i > LONG_MAX - num)
+                    goto end;
                 num += i;
             }
         }

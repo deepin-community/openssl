@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2024 The OpenSSL Project Authors. All Rights Reserved.
+ * Copyright 2016-2025 The OpenSSL Project Authors. All Rights Reserved.
  *
  * Licensed under the Apache License 2.0 (the "License").  You may not use
  * this file except in compliance with the License.  You can obtain a copy
@@ -17,6 +17,8 @@
 #define TLS13_CHACHA20_POLY1305_SHA256_BYTES ((const unsigned char *)"\x13\x03")
 #define TLS13_AES_128_CCM_SHA256_BYTES ((const unsigned char *)"\x13\x04")
 #define TLS13_AES_128_CCM_8_SHA256_BYTES ((const unsigned char *)"\x13\05")
+#define TLS13_SHA256_SHA256_BYTES ((const unsigned char *)"\xC0\xB4")
+#define TLS13_SHA384_SHA384_BYTES ((const unsigned char *)"\xC0\xB5")
 
 int create_ssl_ctx_pair(OSSL_LIB_CTX *libctx, const SSL_METHOD *sm,
                         const SSL_METHOD *cm, int min_proto_version,
@@ -26,11 +28,15 @@ int create_ssl_objects(SSL_CTX *serverctx, SSL_CTX *clientctx, SSL **sssl,
                        SSL **cssl, BIO *s_to_c_fbio, BIO *c_to_s_fbio);
 int create_bare_ssl_connection(SSL *serverssl, SSL *clientssl, int want,
                                int read, int listen);
+int create_bare_ssl_connection_ex(SSL *serverssl, SSL *clientssl, int want,
+                                  int read, int listen, int *cm_count, int *sm_count);
 int create_ssl_objects2(SSL_CTX *serverctx, SSL_CTX *clientctx, SSL **sssl,
                        SSL **cssl, int sfd, int cfd);
 int wait_until_sock_readable(int sock);
 int create_test_sockets(int *cfdp, int *sfdp, int socktype, BIO_ADDR *saddr);
 int create_ssl_connection(SSL *serverssl, SSL *clientssl, int want);
+int create_ssl_connection_ex(SSL *serverssl, SSL *clientssl, int want,
+                             int *cm_count, int *sm_count);
 void shutdown_ssl_connection(SSL *serverssl, SSL *clientssl);
 
 /* Note: Not thread safe! */
@@ -68,6 +74,7 @@ void bio_s_maybe_retry_free(void);
 
 int mempacket_swap_epoch(BIO *bio);
 int mempacket_move_packet(BIO *bio, int d, int s);
+int mempacket_dup_last_packet(BIO *bio);
 int mempacket_test_inject(BIO *bio, const char *in, int inl, int pktnum,
                           int type);
 
