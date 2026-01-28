@@ -1,0 +1,30 @@
+From: Daniel Kubec <kubec@openssl.org>
+Date: Fri, 9 Jan 2026 14:33:24 +0100
+Subject: ossl_quic_get_cipher_by_char(): Add a NULL guard before
+ dereferencing SSL_CIPHER
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+
+Fixes CVE-2025-15468
+
+Reviewed-by: Saša Nedvědický <sashan@openssl.org>
+Reviewed-by: Tomas Mraz <tomas@openssl.org>
+MergeDate: Mon Jan 26 19:36:04 2026
+---
+ ssl/quic/quic_impl.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/ssl/quic/quic_impl.c b/ssl/quic/quic_impl.c
+index 2f0e176588e5..7223762103f0 100644
+--- a/ssl/quic/quic_impl.c
++++ b/ssl/quic/quic_impl.c
+@@ -3643,6 +3643,8 @@ const SSL_CIPHER *ossl_quic_get_cipher_by_char(const unsigned char *p)
+ {
+     const SSL_CIPHER *ciph = ssl3_get_cipher_by_char(p);
+ 
++    if (ciph == NULL)
++        return NULL;
+     if ((ciph->algorithm2 & SSL_QUIC) == 0)
+         return NULL;
+ 
