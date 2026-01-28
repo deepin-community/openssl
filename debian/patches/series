@@ -11,3 +11,17 @@ Add-support-for-Zhaoxin-SM2-3-4-instruction.patch
 deepin-sw64-support.patch
 1000-Support-TLCP-and-GM-T-0024-2014.patch
 bugfix-ZHAOXIN-GM-certificate-verify-error.patch
+kek_unwrap_key-Fix-incorrect-check-of-unwrapped-key-size.patch
+SM2-Use-constant-time-modular-inversion.patch
+use_proxy-Add-missing-terminating-NUL-byte.patch
+Correct-handling-of-AEAD-encrypted-CMS-with-inadmissibly-.patch
+Some-comments-to-clarify-functions-usage.patch
+Test-for-handling-of-AEAD-encrypted-CMS-with-inadmissibly.patch
+ossl_quic_get_cipher_by_char-Add-a-NULL-guard-before-dere.patch
+Check-the-received-uncompressed-certificate-length-to-pre.patch
+Fix-heap-buffer-overflow-in-BIO_f_linebuffer.patch
+Fix-OCB-AES-NI-HW-stream-path-unauthenticated-unencrypted.patch
+Check-return-code-of-UTF8_putc.patch
+Verify-ASN1-object-s-types-before-attempting-to-access-th.patch
+PKCS12_item_decrypt_d2i_ex-Check-oct-argument-for-NULL.patch
+Ensure-ASN1-types-are-checked-before-use.patch

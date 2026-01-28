@@ -1,3 +1,37 @@
+openssl (3.2.4-0deepin6) unstable; urgency=medium
+
+  * Security update: 13 CVEs
+    See: https://github.com/deepin-community/sig-deepin-security/issues/235
+    See: https://github.com/deepin-community/sig-deepin-security/issues/232
+    - CVE-2025-9230:
+      https://github.com/openssl/openssl/commit/b5282d677551afda7d20e9c00e09561b547b2dfd
+    - CVE-2025-9231:
+      https://github.com/openssl/openssl/commit/cba616c26ac8e7b37de5e77762e505ba5ca51698
+    - CVE-2025-9232:
+      https://github.com/openssl/openssl/commit/89e790ac431125a4849992858490bed6b225eadf
+    - CVE-2025-15467:
+      0ddd6b6 Correct handling of AEAD-encrypted CMS with inadmissibly long IV
+      b1a995e Some comments to clarify functions usage
+      6297ac4 Test for handling of AEAD-encrypted CMS with inadmissibly long IV
+    - CVE-2025-15468:
+      293b55d ossl_quic_get_cipher_by_char(): Add a NULL guard before dereferencing SSL_CIPHER
+    - CVE-2025-66199:
+      84f73f7 Check the received uncompressed certificate length to prevent excessive pre-decompression allocation.
+    - CVE-2025-68160:
+      b21663c Fix heap buffer overflow in BIO_f_linebuffer
+    - CVE-2025-69418:
+      be9375d Fix OCB AES-NI/HW stream path unauthenticated/unencrypted trailing bytes
+    - CVE-2025-69419:
+      53b78f2 Check return code of UTF8_putc
+    - CVE-2025-69420:
+      ea8fc4c Verify ASN1 object's types before attempting to access them as a particular type
+    - CVE-2025-69421:
+      2c13bf1 PKCS12_item_decrypt_d2i_ex(): Check oct argument for NULL
+    - CVE-2026-22795, CVE-2026-22796
+      c082649 Ensure ASN1 types are checked before use.
+
+ -- Tianyu Chen <sweetyfish@deepin.org>  Wed, 28 Jan 2026 16:30:39 +0800
+
 openssl (3.2.4-0deepin5) unstable; urgency=medium
 
   * bugfix Zhaoxin.GM certificate verify error due to without setting default user id.
