@@ -1,3 +1,28 @@
+openssl (3.2.4-0deepin7) unstable; urgency=medium
+
+  * Security update: Import 10 patches from upstream
+    - dane_match_cert() should X509_free() on ->mcert instead
+      Fixes: CVE-2026-28387
+    - Fix NULL deref in [ec]dh_cms_set_shared_info
+      Fixes: CVE-2026-28389
+    - Test for DH/ECDH CMS KARI processing NULL pointer dereference
+    - Fix NULL deref in rsa_cms_decrypt
+      Fixes: CVE-2026-28390
+    - Add test for CMS decryption with RSA keys
+    - Fix NULL Dereference When Delta CRL Lacks CRL Number Extension
+      Fixes: CVE-2026-28388
+    - Added test for CVE-2026-28388
+    - Avoid possible buffer overflow in buf2hex conversion
+      Fixes: CVE-2026-31789
+    - rsa_kem: validate RSA_public_encrypt() result in RSASVE
+      Fixes: CVE-2026-31790
+    - rsa_kem: test RSA_public_encrypt() result in RSASVE
+    https://github.com/deepin-community/sig-deepin-security/issues/310
+  * Include debian/patches/Add-test-for-CMS-decryption-with-RSA-keys.patch in
+    debian/source/include-binaries
+
+ -- Tianyu Chen <sweetyfish@deepin.org>  Fri, 10 Apr 2026 15:27:28 +0800
+
 openssl (3.2.4-0deepin6) unstable; urgency=medium
 
   * Security update: 13 CVEs
