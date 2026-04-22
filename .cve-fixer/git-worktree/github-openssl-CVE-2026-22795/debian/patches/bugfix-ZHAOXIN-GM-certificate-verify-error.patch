@@ -1,0 +1,32 @@
+---
+ crypto/sm2/sm2_sign.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
+
+Index: b/crypto/sm2/sm2_sign.c
+===================================================================
+--- a/crypto/sm2/sm2_sign.c
++++ b/crypto/sm2/sm2_sign.c
+@@ -79,6 +79,11 @@ int ossl_sm2_compute_z_digest(uint8_t *o
+         goto done;
+     }
+ 
++    if (id == NULL) {
++        id = (const uint8_t *)SM2_DEFAULT_USERID;
++        id_len = strlen(SM2_DEFAULT_USERID);
++    }
++
+     if (GMI_SM2_CAPABLE) {
+         if (GMI_SM2_sign_preprocess1(key, id, id_len, out)) {
+             return 1;
+@@ -122,11 +127,6 @@ int ossl_sm2_compute_z_digest(uint8_t *o
+         goto done;
+     }
+ 
+-    if (id == NULL) {
+-        id = (const uint8_t *)SM2_DEFAULT_USERID;
+-        id_len = strlen(SM2_DEFAULT_USERID);
+-    }
+-
+     entl = (uint16_t)(8 * id_len);
+ 
+     e_byte = entl >> 8;
