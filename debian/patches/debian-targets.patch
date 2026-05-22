@@ -3,19 +3,19 @@ Date: Sun, 5 Nov 2017 15:09:09 +0100
 Subject: debian-targets
 
 ---
- Configurations/20-debian.conf | 160 ++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 160 insertions(+)
+ Configurations/20-debian.conf | 163 ++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 163 insertions(+)
  create mode 100644 Configurations/20-debian.conf
 
 diff --git a/Configurations/20-debian.conf b/Configurations/20-debian.conf
 new file mode 100644
-index 000000000000..177c184a912e
+index 000000000000..f75c06d305b0
 --- /dev/null
 +++ b/Configurations/20-debian.conf
-@@ -0,0 +1,160 @@
+@@ -0,0 +1,163 @@
 +my %targets = (
 +	"debian" => {
-+		cflags => add("-Wa,--noexecstack -Wall -fzero-call-used-regs=used-gpr -DOPENSSL_TLS_SECURITY_LEVEL=2"),
++		cflags => add("-Wa,--noexecstack -Wall -fzero-call-used-regs=used-gpr"),
 +	},
 +	"debian-alpha" => {
 +		inherit_from => [ "linux-alpha-gcc", "debian" ],
@@ -66,6 +66,9 @@ index 000000000000..177c184a912e
 +	},
 +	"debian-hurd-i386" => {
 +		inherit_from => [ "hurd-x86", "debian" ],
++	},
++	"debian-hurd-amd64" => {
++		inherit_from => [ "hurd-x86_64", "debian" ],
 +	},
 +	"debian-ia64" => {
 +		inherit_from => [ "linux-ia64", "debian" ],
