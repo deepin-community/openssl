@@ -39,6 +39,6 @@ CVE-2026-34180.patch
 CVE-2026-7383.patch
 CVE-2026-9076.patch
 CVE-2026-34182-fix.patch
-CVE-2026-34182-test.patch
 CVE-2026-45445.patch
 CVE-2026-45447.patch
+CVE-2026-34182-test.patch
