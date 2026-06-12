@@ -35,3 +35,10 @@ Added-test-for-CVE-2026-28388.patch
 Avoid-possible-buffer-overflow-in-buf2hex-conversion.patch
 rsa_kem-validate-RSA_public_encrypt-result-in-RSASVE.patch
 rsa_kem-test-RSA_public_encrypt-result-in-RSASVE.patch
+CVE-2026-34180.patch
+CVE-2026-7383.patch
+CVE-2026-9076.patch
+CVE-2026-34182-fix.patch
+CVE-2026-34182-test.patch
+CVE-2026-45445.patch
+CVE-2026-45447.patch

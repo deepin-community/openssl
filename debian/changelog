@@ -1,3 +1,29 @@
+openssl (3.2.4-0deepin8) unstable; urgency=medium
+
+  * Security update: Import 7 patches from upstream
+    - Avoid length truncation in ASN1_STRING_set
+      Fixes: CVE-2026-34180
+    - Reject oversized inputs in ASN1_mbstring_ncopy()
+      Fixes: CVE-2026-7383
+    - cms: kek_unwrap_key: Fix out-of-bounds read in check-byte validation
+      Fixes: CVE-2026-9076
+    - pkcs12: verify that the pbmac1 key length is safe
+      Fixes: CVE-2026-34181
+    - Reject potentially forged encrypted CMS AuthEnvelopedData messages
+      Fixes: CVE-2026-34182
+    - Apply the buffered IV on the AES-OCB EVP_Cipher() path
+      Fixes: CVE-2026-45445
+    - Fix possible use-after-free in OpenSSL PKCS7_verify()
+      Fixes: CVE-2026-45447
+    - Add tests for CVE-2026-34182
+  * CVE-2026-34183 and CVE-2026-42764 have been rejected by their CVE
+    Numbering Authority and are not valid vulnerabilities.
+  * CVE-2026-34181 does not affect OpenSSL 3.2.x as PBMAC1 support was
+    added in OpenSSL 3.3. The PKCS12 code in this version does not
+    contain the vulnerable PBMAC1_PBKDF2_HMAC function.
+
+ -- AI Package Fixer <noreply@deepin.org>  Thu, 12 Jun 2026 14:00:00 +0800
+
 openssl (3.2.4-0deepin7) unstable; urgency=medium
 
   * Security update: Import 10 patches from upstream
