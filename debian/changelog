@@ -1,3 +1,17 @@
+openssl (3.2.4-0deepin9) unstable; urgency=medium
+
+  * Security update: Fix 4 CVEs
+    - Incorrect tag processing for empty messages in AES-GCM-SIV and AES-SIV modes
+      Fixes: CVE-2026-45446
+    - NULL dereference in password-based CMS decryption
+      Fixes: CVE-2026-42766
+    - NULL pointer dereference in CRMF EncryptedValue decryption
+      Fixes: CVE-2026-42767
+    - Use local q parameter for DHX subgroup membership check
+      Fixes: CVE-2026-42770
+
+ -- deepin-ci-robot <packages@deepin.org>  Thu, 18 Jun 2026 02:30:00 +0800
+
 openssl (3.2.4-0deepin8) unstable; urgency=medium
 
   * Security update: Import 7 patches from upstream
