@@ -42,3 +42,15 @@ CVE-2026-34182-fix.patch
 CVE-2026-45445.patch
 CVE-2026-45447.patch
 CVE-2026-34182-test.patch
+
+# CVE-2026-45446 - Incorrect tag processing for empty messages in AES-GCM-SIV and AES-SIV
+CVE-2026-45446.patch
+
+# CVE-2026-42766 - NULL dereference in password-based CMS decryption
+CVE-2026-42766.patch
+
+# CVE-2026-42767 - NULL pointer dereference in CRMF EncryptedValue decryption
+CVE-2026-42767.patch
+
+# CVE-2026-42770 - FFC-DH peer validation uses attacker-supplied q
+CVE-2026-42770.patch
