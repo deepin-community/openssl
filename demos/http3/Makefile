@@ -4,17 +4,25 @@
 #
 #    LD_LIBRARY_PATH=../.. ./ossl-nghttp3-demo www.example.com:443
 
-CFLAGS  = -I../../include -g -Wall -Wsign-compare
-LDFLAGS = -L../..
+# when using gcc the below CFLAGS make sure you follow most of the rules of OpenSSL coding style.
+#CFLAGS  += -I../../include -g -Wall -Wsign-compare -std=c90 -pedantic -pedantic-errors -Wno-long-long
+
+CFLAGS  += -I../../include -g -Wall -Wsign-compare
+LDFLAGS += -L../..
 LDLIBS  = -lcrypto -lssl -lnghttp3
 
-all: ossl-nghttp3-demo
-
-clean:
-	$(RM) ossl-nghttp3-demo *.o
+all: ossl-nghttp3-demo ossl-nghttp3-demo-server
 
 ossl-nghttp3-demo: ossl-nghttp3-demo.o ossl-nghttp3.o
-	$(CC) $(CFLAGS) -o "$@" $^ $(LDFLAGS) $(LDLIBS)
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^ $(LDLIBS)
 
-%.o: %.c
-	$(CC) $(CFLAGS) -c -o "$@" "$<"
+ossl-nghttp3-demo-server: ossl-nghttp3-demo-server.o ossl-nghttp3.o
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^ $(LDLIBS)
+
+clean:
+	$(RM) ossl-nghttp3-demo ossl-nghttp3-demo-server *.o
+
+.PHONY: test
+test: all
+	@echo "\nHTTP/3 tests:"
+	@echo "skipped"
