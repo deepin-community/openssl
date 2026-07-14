@@ -1,3 +1,9 @@
+openssl (3.5.6-1~deb13u2deepin1) unstable; urgency=medium
+
+  * remove t64
+
+ -- Chang Yang <yangchang@deepin.org>  Tue, 14 Jul 2026 11:33:44 +0800
+
 openssl (3.5.6-1~deb13u2) trixie-security; urgency=medium
 
   * CVE-2026-7383 ("Possible Heap Buffer Overflow in ASN.1 Multibyte String

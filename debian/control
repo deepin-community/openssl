@@ -32,8 +32,8 @@ Description: Secure Sockets Layer toolkit - cryptographic utility
 Package: openssl-provider-legacy
 Architecture: any
 Multi-Arch: foreign
-Breaks: libssl3t64 (<<3.3.1-5), libssl3 (<<3.3.1-5)
-Replaces: libssl3t64 (<<3.3.1-5), libssl3 (<<3.3.1-5)
+Breaks: libssl3 (<<3.3.1-5)
+Replaces: libssl3 (<<3.3.1-5)
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: Secure Sockets Layer toolkit - cryptographic utility
  This package is part of the OpenSSL project's implementation of the SSL
@@ -62,8 +62,7 @@ Description: Secure Sockets Layer toolkit - cryptographic utility
  laboratory.
  For details see OSSL_PROVIDER-fips and fips_module man page.
 
-Package: libssl3t64
-Provides: ${t64:Provides}
+Package: libssl3
 Replaces: libssl3
 Section: libs
 Architecture: any
@@ -108,7 +107,7 @@ Section: libdevel
 Architecture: any
 Multi-Arch: same
 Suggests: libssl-doc
-Depends: libssl3t64 (= ${binary:Version}), ${misc:Depends}
+Depends: libssl3 (= ${binary:Version}), ${misc:Depends}
 Description: Secure Sockets Layer toolkit - development files
  This package is part of the OpenSSL project's implementation of the SSL
  and TLS cryptographic protocols for secure communication over the

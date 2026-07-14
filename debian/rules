@@ -154,5 +154,5 @@ override_dh_makeshlibs:
 	dh_makeshlibs -a -V --add-udeb="libcrypto3-udeb" -Xengines -Xossl-modules -- -c4
 
 override_dh_shlibdeps:
-	sed -i '/^udeb: libssl/s/libcrypto3-udeb/libssl3-udeb/' debian/libssl3t64/DEBIAN/shlibs
-	dh_shlibdeps -a -L libssl3t64
+	sed -i '/^udeb: libssl/s/libcrypto3-udeb/libssl3-udeb/' debian/libssl3/DEBIAN/shlibs
+	dh_shlibdeps -a -L libssl3
