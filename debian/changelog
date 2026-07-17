@@ -1,3 +1,9 @@
+openssl (3.2.4-0deepin10) unstable; urgency=medium
+
+  * fix(cve): CVE-2025-27587
+
+ -- deepin-ci-robot <packages@deepin.org>  Fri, 17 Jul 2026 13:36:58 +0800
+
 openssl (3.2.4-0deepin9) unstable; urgency=medium
 
   * Security update: Fix 4 CVEs
