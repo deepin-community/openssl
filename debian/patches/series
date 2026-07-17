@@ -54,3 +54,4 @@ CVE-2026-42767.patch
 
 # CVE-2026-42770 - FFC-DH peer validation uses attacker-supplied q
 CVE-2026-42770.patch
+CVE-2025-27587.patch
