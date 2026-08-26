@@ -1,3 +1,9 @@
+openssl (3.2.4-0deepin13) unstable; urgency=medium
+
+  * fix(cve): CVE-2026-63076
+
+ -- deepin-ci-robot <packages@deepin.org>  Thu, 27 Aug 2026 06:05:24 +0800
+
 openssl (3.2.4-0deepin12) unstable; urgency=medium
 
   * fix(cve): CVE-2026-42769
