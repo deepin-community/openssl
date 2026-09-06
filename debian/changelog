@@ -1,3 +1,13 @@
+openssl (3.2.4-0deepin16) unstable; urgency=medium
+
+  * fix(cve): CVE-2026-54874 (unknown) - Avoid full read buffer
+    allocation when buffering DTLS next-epoch records   Upstream:
+    https://github.com/openssl/openssl/commit/809b52282a3ea6d56fc2e1c427
+    f2d9bd83b06eaa,https://github.com/openssl/openssl/commit/1ca5a124b48
+    f1ffe6980ad33724b452fbd62da1e
+
+ -- deepin-ci-robot <packages@deepin.org>  Mon, 07 Sep 2026 05:25:22 +0800
+
 openssl (3.2.4-0deepin15) unstable; urgency=medium
 
   * fix(cve): CVE-2026-75803
