@@ -5,6 +5,10 @@ openssl (3.2.4-0deepin16) unstable; urgency=medium
     https://github.com/openssl/openssl/commit/809b52282a3ea6d56fc2e1c427
     f2d9bd83b06eaa,https://github.com/openssl/openssl/commit/1ca5a124b48
     f1ffe6980ad33724b452fbd62da1e
+  * fix(cve): CVE-2026-63072 (unknown) - Fix heap buffer overflow (8-
+    byte OOB write) in AES-WRAP-PAD unwrap   Upstream:
+    https://github.com/openssl/openssl/commit/9ec2f6d2ae2bcad907cf7ee385
+    84855bafe4979a
 
  -- deepin-ci-robot <packages@deepin.org>  Mon, 07 Sep 2026 05:25:22 +0800
 
