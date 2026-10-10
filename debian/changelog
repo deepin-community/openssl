@@ -9,6 +9,10 @@ openssl (3.2.4-0deepin16) unstable; urgency=medium
     byte OOB write) in AES-WRAP-PAD unwrap   Upstream:
     https://github.com/openssl/openssl/commit/9ec2f6d2ae2bcad907cf7ee385
     84855bafe4979a
+  * fix(cve): CVE-2026-84782 (unknown) - dtls: reset init_off before
+    retransmitting a message   Upstream:
+    https://github.com/openssl/openssl/commit/2c57351ccdedbb1e3bdd0506c2
+    de152fa9d5b0da.patch
 
  -- deepin-ci-robot <packages@deepin.org>  Mon, 07 Sep 2026 05:25:22 +0800
 
