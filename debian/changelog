@@ -1,3 +1,12 @@
+openssl (3.2.4-0deepin17) unstable; urgency=medium
+
+  * fix(cve): CVE-2026-84784 (unknown) - CVE-2026-84784 QUIC: unbounded
+    RETIRE_CONNECTION_ID backlog (memory DoS)   Upstream:
+    https://github.com/openssl/openssl/commit/4685c914b0d410b1034f40b547
+    c95bc95e7a380a
+
+ -- deepin-ci-robot <packages@deepin.org>  Sat, 10 Oct 2026 16:22:03 +0800
+
 openssl (3.2.4-0deepin16) unstable; urgency=medium
 
   * Rebuild with LTO enabled (dpkg vendor feature optimize/lto).
