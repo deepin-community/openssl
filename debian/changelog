@@ -17,6 +17,10 @@ openssl (3.2.4-0deepin16) unstable; urgency=medium
     multiplication constant time   Upstream:
     https://github.com/openssl/openssl/commit/ddb9e22bc3b46d65fba9d2ec58
     e444c9f7d4749e
+  * fix(cve): CVE-2026-42772 (unknown) - New implementation of stream
+    reassembly for QUIC.   Upstream:
+    https://github.com/openssl/openssl/commit/dbc3ceb4ca582a304eda542f12
+    d4338ed421d3c7.patch
 
  -- deepin-ci-robot <packages@deepin.org>  Mon, 07 Sep 2026 05:25:22 +0800
 
