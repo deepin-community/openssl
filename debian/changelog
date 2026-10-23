@@ -4,6 +4,10 @@ openssl (3.2.4-0deepin17) unstable; urgency=medium
     RETIRE_CONNECTION_ID backlog (memory DoS)   Upstream:
     https://github.com/openssl/openssl/commit/4685c914b0d410b1034f40b547
     c95bc95e7a380a
+  * fix(cve): CVE-2026-35189 (unknown) - Defer computation of relative
+    CRLDP names   Upstream:
+    https://github.com/openssl/openssl/commit/c72ae182cac17a82e4246c6ecd
+    4e9c4ec3586ec9
 
  -- deepin-ci-robot <packages@deepin.org>  Sat, 10 Oct 2026 16:22:03 +0800
 
